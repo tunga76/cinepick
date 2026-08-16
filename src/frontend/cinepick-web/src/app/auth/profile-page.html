@@ -1,0 +1,25 @@
+<main class="shell detail-shell"><a class="back-link" routerLink="/">← CinePick'e dön</a>
+  <section class="page-heading"><p class="eyebrow">Profil</p><h1>{{ user()?.displayName }}</h1><p class="hero__copy">{{ user()?.email }}</p></section>
+  <section class="profile-card"><h2>Hesap durumu</h2><p>Oturumun güvenli, HttpOnly bir cookie ile açık.</p>
+    @if (user()?.roles?.length) { <p>Roller: {{ user()?.roles?.join(', ') }}</p> }
+    <button type="button" [disabled]="busy()" (click)="logout()">{{ busy() ? 'Çıkış yapılıyor…' : 'Çıkış yap' }}</button>
+  </section>
+  <section class="admin-section"><h2>Öneri tercihlerin</h2>
+    <form class="profile-preferences" [formGroup]="preferences" (ngSubmit)="savePreferences()">
+      <label>Tür kodu<input formControlName="preferredGenreSlug" placeholder="bilim-kurgu" maxlength="100" /></label>
+      <label>Dil<input formControlName="preferredLanguage" placeholder="tr" maxlength="10" /></label>
+      <label>En fazla süre<input type="number" formControlName="maximumRuntimeMinutes" min="1" max="600" /></label>
+      <label>En fazla mesafe (km)<input type="number" formControlName="maximumDistanceKilometers" min="1" max="100" /></label>
+      <button type="submit">Tercihleri kaydet</button>
+    </form>
+    @if (preferenceMessage()) { <p class="location-message" role="status">{{ preferenceMessage() }}</p> }
+  </section>
+  <section class="admin-section"><h2>Film listen</h2>
+    @if (movieStates().length === 0) { <p class="location-message">Henüz favori, izlenen veya puanlanan filmin yok.</p> }
+    @else { <div class="movie-state-list">@for (state of movieStates(); track state.movieId) { <a class="cinema-card" [routerLink]="['/movies', state.movieId]"><h3>{{ state.movieTitle }}</h3><p>{{ state.isFavorite ? 'Favori' : '' }} {{ state.isWatched ? '· İzlendi' : '' }} {{ state.rating ? '· ' + state.rating + '/10' : '' }}</p></a> }</div> }
+  </section>
+  <section class="admin-section"><h2>Öneri geçmişin</h2>
+    @if (history().length === 0) { <p class="location-message">Oturum açıkken henüz öneri almadın.</p> }
+    @else { <div class="history-list">@for (session of history(); track session.sessionId) { <article class="profile-card"><p class="eyebrow">{{ istanbulTime(session.createdAt) }} · {{ session.method }}</p>@for (result of session.results; track result.rank) { <a [routerLink]="['/movies', result.movieId]"><strong>{{ result.rank }}. {{ result.movieTitle }}</strong></a><p>{{ result.reason }}</p> }</article> }</div> }
+  </section>
+</main>

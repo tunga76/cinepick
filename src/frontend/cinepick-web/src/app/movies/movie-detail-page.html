@@ -1,0 +1,22 @@
+<main class="shell detail-shell">
+  <a class="back-link" routerLink="/">← Vizyondaki filmlere dön</a>
+  @if (hasError()) { <div class="state-card" role="alert"><h1>Film bulunamadı</h1><p>Bu film kaldırılmış veya bağlantı geçersiz olabilir.</p></div> }
+  @else if (!movie()) { <div class="state-card" aria-busy="true"><p>Film yükleniyor…</p></div> }
+  @else { @let item = movie()!;
+    <article class="movie-detail"><div class="poster detail-poster" aria-hidden="true"><span>{{ item.title.charAt(0) }}</span><small>CinePick</small></div>
+      <div><p class="eyebrow">{{ item.isNowPlaying ? 'Şimdi sinemalarda' : 'Yakında' }}</p><h1>{{ item.title }}</h1>
+        @if (item.originalTitle !== item.title) { <p class="original-title">{{ item.originalTitle }}</p> }
+        <div class="movie-card__meta"><span>{{ item.runtimeMinutes }} dk</span><span>{{ ageLabel(item.ageRating) }}</span><span class="rating">★ {{ item.voteAverage }} / 10</span><span>{{ item.voteCount }} oy</span></div>
+        <p class="genres">{{ item.genres.join(' · ') }}</p><p class="detail-overview">{{ item.overview }}</p>
+        @if (isAuthenticated()) {
+          <section class="movie-actions" aria-label="Kişisel film durumu">
+            <button type="button" class="secondary" [disabled]="stateBusy()" (click)="saveState({ isFavorite: !movieState()?.isFavorite })">{{ movieState()?.isFavorite ? 'Favoriden çıkar' : 'Favoriye ekle' }}</button>
+            <button type="button" class="secondary" [disabled]="stateBusy()" (click)="saveState({ isWatched: !movieState()?.isWatched })">{{ movieState()?.isWatched ? 'İzlenmedi işaretle' : 'İzlendi işaretle' }}</button>
+            <label for="rating">Puanın<select id="rating" [(ngModel)]="rating"><option [ngValue]="null">Puan yok</option>@for (value of [1,2,3,4,5,6,7,8,9,10]; track value) { <option [ngValue]="value">{{ value }}</option> }</select></label>
+            <button type="button" [disabled]="stateBusy()" (click)="saveState()">Puanı kaydet</button>
+          </section>
+        } @else { <p class="profile-invite"><a routerLink="/account">Giriş yap</a> ve filmi favorilerine ekle veya puanla.</p> }
+        @if (stateMessage()) { <p class="location-message" role="status">{{ stateMessage() }}</p> }
+      </div></article>
+  }
+</main>

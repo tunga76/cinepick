@@ -1,0 +1,27 @@
+<main class="shell detail-shell">
+  <a class="back-link" routerLink="/">← CinePick'e dön</a>
+  <section class="auth-card" aria-labelledby="account-title">
+    <p class="eyebrow">CinePick hesabı</p>
+    <h1 id="account-title">{{ mode() === 'login' ? 'Tekrar hoş geldin' : 'Hesabını oluştur' }}</h1>
+    <div class="auth-tabs" role="tablist" aria-label="Hesap işlemi">
+      <button type="button" role="tab" [attr.aria-selected]="mode() === 'login'" [class.secondary]="mode() !== 'login'" (click)="show('login')">Giriş yap</button>
+      <button type="button" role="tab" [attr.aria-selected]="mode() === 'register'" [class.secondary]="mode() !== 'register'" (click)="show('register')">Kayıt ol</button>
+    </div>
+    @if (error()) { <p class="form-error" role="alert">{{ error() }}</p> }
+    @if (mode() === 'login') {
+      <form class="auth-form" [formGroup]="loginForm" (ngSubmit)="login()">
+        <label for="login-email">E-posta</label><input id="login-email" type="email" autocomplete="email" formControlName="email" />
+        <label for="login-password">Şifre</label><input id="login-password" type="password" autocomplete="current-password" formControlName="password" />
+        <button type="submit" [disabled]="busy()">{{ busy() ? 'Giriş yapılıyor…' : 'Giriş yap' }}</button>
+      </form>
+    } @else {
+      <form class="auth-form" [formGroup]="registerForm" (ngSubmit)="register()">
+        <label for="display-name">Görünen ad</label><input id="display-name" autocomplete="name" formControlName="displayName" maxlength="80" />
+        <label for="register-email">E-posta</label><input id="register-email" type="email" autocomplete="email" formControlName="email" />
+        <label for="register-password">Şifre</label><input id="register-password" type="password" autocomplete="new-password" formControlName="password" />
+        <small>En az 10 karakter; büyük/küçük harf, rakam ve özel karakter kullan.</small>
+        <button type="submit" [disabled]="busy()">{{ busy() ? 'Hesap oluşturuluyor…' : 'Kayıt ol' }}</button>
+      </form>
+    }
+  </section>
+</main>

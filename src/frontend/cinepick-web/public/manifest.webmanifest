@@ -1,0 +1,14 @@
+{
+  "name": "CinePick Akıllı Sinema Rehberi",
+  "short_name": "CinePick",
+  "description": "Türkiye'deki filmler ve doğrulanmış sinema seansları için kişisel rehber.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#111018",
+  "theme_color": "#ff4d6d",
+  "lang": "tr-TR",
+  "icons": [
+    { "src": "/cinepick-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

@@ -1,0 +1,12 @@
+<main class="shell detail-shell"><a class="back-link" routerLink="/">← Uygulamaya dön</a>
+  <section class="page-heading"><p class="eyebrow">Admin policy</p><h1>CinePick yönetimi</h1><p class="hero__copy">Bu ekran yalnızca Identity `Admin` rolüne sahip kullanıcılar için açılır; tüm yetki kontrolleri API'de tekrar uygulanır.</p></section>
+  <section class="admin-actions"><button type="button" [disabled]="busy()" (click)="syncMovies()">Film kataloğunu eşitle</button><button type="button" [disabled]="busy()" (click)="syncShowtimes()">Seansları eşitle</button></section>
+  @if (message()) { <p class="success-message" role="status">{{ message() }}</p> }
+  @if (error()) { <div class="state-card" role="alert">Yönetim işlemi tamamlanamadı.</div> }
+  <section class="admin-section"><h2>Son senkronizasyonlar</h2><div class="admin-table-wrap"><table><thead><tr><th>İşlem</th><th>Sağlayıcı</th><th>Durum</th><th>Başlangıç</th><th>Eklenen / güncellenen</th></tr></thead><tbody>
+    @for (log of logs(); track log.id) { <tr><td>{{ log.operation }}</td><td>{{ log.providerId }}</td><td>{{ log.status }}</td><td>{{ istanbulTime(log.startedAt) }}</td><td>{{ log.insertedCount }} / {{ log.updatedCount }}</td></tr> }
+  </tbody></table></div></section>
+  <section class="admin-section"><h2>Seans durumu</h2><div class="admin-table-wrap"><table><thead><tr><th>Film</th><th>Sinema / salon</th><th>Başlangıç</th><th>Kaynak</th><th>İşlem</th></tr></thead><tbody>
+    @for (item of showtimes(); track item.id) { <tr [class.cancelled]="item.isCancelled"><td>{{ item.movieTitle }}</td><td>{{ item.cinemaName }} · {{ item.auditoriumName }}</td><td>{{ istanbulTime(item.startsAt) }}</td><td>{{ item.externalSyncKey ? 'Provider' : 'Seed' }}</td><td><button type="button" class="secondary compact" [disabled]="busy()" (click)="toggleCancellation(item)">{{ item.isCancelled ? 'Geri aç' : 'İptal et' }}</button></td></tr> }
+  </tbody></table></div></section>
+</main>

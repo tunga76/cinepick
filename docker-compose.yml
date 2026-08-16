@@ -1,0 +1,61 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-Change_this_local_password_123!}
+    ports:
+      - "1433:1433"
+    volumes:
+      - cinepick-sql-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -C -Q \"SELECT 1\" || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__CinePick: Server=sqlserver,1433;Database=CinePick;User Id=sa;Password=${MSSQL_SA_PASSWORD:-Change_this_local_password_123!};TrustServerCertificate=True
+      Database__Initialize: "true"
+      MovieProviders__Mode: Mock
+      ShowtimeProviders__Mode: Mock
+      AI__Mode: Mock
+      Identity__BootstrapAdmin__Enabled: ${CINEPICK_E2E_ADMIN_ENABLED:-false}
+      Identity__BootstrapAdmin__Email: ${CINEPICK_E2E_ADMIN_EMAIL:-}
+      Identity__BootstrapAdmin__Password: ${CINEPICK_E2E_ADMIN_PASSWORD:-}
+      Identity__BootstrapAdmin__DisplayName: ${CINEPICK_E2E_ADMIN_DISPLAY_NAME:-CinePick Admin}
+    ports:
+      - "8080:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/health/live"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--quiet", "http://127.0.0.1/"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  cinepick-sql-data:

@@ -1,0 +1,17 @@
+<a class="skip-link" href="#main-content">Ana içeriğe geç</a>
+<main id="main-content" class="shell" tabindex="-1">
+  <header class="brand"><a routerLink="/" class="brand-link"><span class="brand__mark" aria-hidden="true">C</span><span>CinePick</span></a><nav aria-label="Ana menü"><a routerLink="/">Filmler</a><a routerLink="/cinemas">Sinemalar</a><a routerLink="/admin">Yönetim</a><a routerLink="/profile">Profil</a></nav></header>
+  <section class="page-heading"><p class="eyebrow">Yakınındaki perdeler</p><h1>Sinemalar</h1><p class="hero__copy">Şehir seç veya yalnızca sen istediğinde konumunu kullanarak yakın sinemaları bul.</p></section>
+  <section class="location-panel" aria-label="Sinema konumu">
+    <label>Şehir<select [formControl]="cityId"><option value="">Tüm şehirler</option>@for (city of cities(); track city.id) { <option [value]="city.id">{{ city.name }}</option> }</select></label>
+    <button type="button" (click)="filterByCity()">Şehri göster</button><button type="button" class="secondary" (click)="useLocation()">Konumumu kullan</button>
+  </section>
+  @if (locationMessage()) { <p class="location-message" role="status">{{ locationMessage() }}</p> }
+  @if (loading()) { <div class="state-card" aria-busy="true">Sinemalar yükleniyor…</div> }
+  @else if (error()) { <div class="state-card" role="alert">Sinemalar şu anda yüklenemedi.</div> }
+  @else if (cinemas().length === 0) { <div class="state-card">Bu bölgede sinema bulunamadı. Şehir seçerek tekrar deneyebilirsin.</div> }
+  @else { <div class="cinema-grid">@for (cinema of cinemas(); track cinema.id) {
+    <a class="cinema-card" [routerLink]="['/cinemas', cinema.id]"><p class="eyebrow">{{ cinema.city }} · {{ cinema.district }}</p><h2>{{ cinema.name }}</h2><p>{{ cinema.address }}</p>
+      @if (cinema.distanceKilometers !== null) { <strong>{{ cinema.distanceKilometers.toFixed(1) }} km</strong> }</a>
+  }</div> }
+</main>

@@ -1,0 +1,49 @@
+<a class="skip-link" href="#main-content">Ana içeriğe geç</a>
+<main id="main-content" class="shell" tabindex="-1">
+  <header class="brand" aria-label="CinePick"><a routerLink="/" class="brand-link"><span class="brand__mark" aria-hidden="true">C</span><span>CinePick</span></a><nav aria-label="Ana menü"><a routerLink="/">Filmler</a><a routerLink="/cinemas">Sinemalar</a><a routerLink="/admin">Yönetim</a><a routerLink="/profile">Profil</a></nav></header>
+  <section class="hero" aria-labelledby="hero-title">
+    <p class="eyebrow">Akıllı sinema rehberi</p>
+    <h1 id="hero-title">Bu akşam ne izlemek istersin?</h1>
+    <p class="hero__copy">Konumuna, zamanına ve zevkine uyan gerçek seansları birlikte bulalım.</p>
+    <form class="prompt" aria-label="Film önerisi" (submit)="recommend(); $event.preventDefault()">
+      <label for="movie-request">Film isteğini doğal dille yaz</label>
+      <textarea id="movie-request" rows="4" [formControl]="requestText" maxlength="500"></textarea>
+      <button type="submit" [disabled]="recommendationLoading() || !requestText.value.trim()">{{ recommendationLoading() ? 'Adaylar değerlendiriliyor…' : 'Önerileri bul' }}</button>
+      <small>Şimdilik deterministik mock parser kullanılıyor; zorunlu filtreler AI dışında uygulanır.</small>
+    </form>
+    @if (recommendationError()) { <div class="recommendation-state" role="alert">Öneriler şu anda oluşturulamadı.</div> }
+    @else if (!recommendationLoading() && candidateCount() > 0) {
+      <section class="recommendation-results" aria-labelledby="recommendation-title"><div class="section-heading"><h2 id="recommendation-title">Sana uygun seçenekler</h2><span class="result-count">{{ candidateCount() }} gerçek adaydan</span></div>
+        <div class="recommendation-grid">@for (item of recommendations(); track item.showtimeId) { <article class="recommendation-card"><div class="score">{{ item.score }}</div><p class="eyebrow">{{ item.districtName }} · {{ item.format }}</p><a [routerLink]="['/movies', item.movieId]"><h3>{{ item.movieTitle }}</h3></a><p>{{ item.cinemaName }} · {{ istanbulTime(item.startsAt) }}</p><p class="reason">{{ item.reason }}</p><div class="recommendation-footer"><strong>{{ price(item) }}</strong><a class="ticket-link" [href]="item.ticketUrl" target="_blank" rel="noopener noreferrer">Bilet bağlantısı</a></div></article> }</div>
+      </section>
+    } @else if (hasRequestedRecommendation() && !recommendationLoading() && recommendations().length === 0) {
+      <div class="recommendation-state">İsteğine uyan gerçek bir seans bulunamadı. Zaman veya konum koşulunu genişletebilirsin.</div>
+    }
+  </section>
+  <section class="catalog" aria-labelledby="catalog-title">
+    <div class="section-heading"><div><p class="eyebrow">Şimdi sinemalarda</p><h2 id="catalog-title">Vizyondaki filmler</h2></div>
+      @if (!isLoadingMovies() && !movieLoadError()) { <span class="result-count">{{ totalCount() }} film</span> }
+    </div>
+    <form class="catalog-filters" [formGroup]="filters" (ngSubmit)="loadMovies()">
+      <label>Film ara<input type="search" formControlName="search" placeholder="Film adı" /></label>
+      <label>Tür<select formControlName="genreId"><option value="">Tüm türler</option>@for (genre of genres(); track genre.id) { <option [value]="genre.id">{{ genre.name }}</option> }</select></label>
+      <label>En fazla süre<select formControlName="maximumRuntimeMinutes"><option value="">Süre fark etmez</option><option value="90">90 dakika</option><option value="120">120 dakika</option><option value="150">150 dakika</option></select></label>
+      <div class="filter-actions"><button type="submit">Filtrele</button><button class="secondary" type="button" (click)="resetFilters()">Temizle</button></div>
+    </form>
+    @if (isLoadingMovies()) {
+      <div class="movie-grid" aria-label="Filmler yükleniyor" aria-busy="true">@for (item of [1, 2, 3, 4]; track item) { <div class="movie-card movie-card--skeleton"></div> }</div>
+    } @else if (movieLoadError()) {
+      <div class="state-card" role="alert"><p>Filmler şu anda yüklenemedi.</p><button type="button" (click)="loadMovies()">Tekrar dene</button></div>
+    } @else if (movies().length === 0) {
+      <div class="state-card"><p>Filtrelere uyan vizyon filmi bulunamadı.</p></div>
+    } @else {
+      <div class="movie-grid">@for (movie of movies(); track movie.id) {
+        <a class="movie-card" [routerLink]="['/movies', movie.id]">
+          <div class="poster" aria-hidden="true"><span>{{ movie.title.charAt(0) }}</span><small>CinePick</small></div>
+          <div class="movie-card__body"><div class="movie-card__meta"><span>{{ movie.runtimeMinutes }} dk</span><span>{{ ageLabel(movie.ageRating) }}</span><span class="rating">★ {{ movie.voteAverage }}</span></div>
+            <h3>{{ movie.title }}</h3><p class="genres">{{ movie.genres.join(' · ') }}</p><p class="overview">{{ movie.overview }}</p></div>
+        </a>
+      }</div>
+    }
+  </section>
+</main>

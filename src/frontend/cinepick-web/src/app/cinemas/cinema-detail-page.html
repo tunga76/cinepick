@@ -1,0 +1,8 @@
+<main class="shell detail-shell"><a class="back-link" routerLink="/cinemas">← Sinemalara dön</a>
+  @if (error()) { <div class="state-card" role="alert"><h1>Sinema bulunamadı</h1></div> }
+  @else if (!cinema()) { <div class="state-card" aria-busy="true">Sinema ve seanslar yükleniyor…</div> }
+  @else { @let item = cinema()!; <section class="page-heading"><p class="eyebrow">{{ item.city }} · {{ item.district }}</p><h1>{{ item.name }}</h1><p class="hero__copy">{{ item.address }}</p><p>{{ item.auditoriums.length }} salon</p></section>
+    <section><h2>Seanslar</h2>@if (showtimes().length === 0) { <div class="state-card">Önümüzdeki yedi gün için seans bulunamadı.</div> }
+      @else { <div class="showtime-list">@for (showtime of showtimes(); track showtime.id) { <article class="showtime-card"><div><a [routerLink]="['/movies', showtime.movieId]"><h3>{{ showtime.movieTitle }}</h3></a><p>{{ showtime.auditoriumName }} · {{ showtime.language.toUpperCase() }} · {{ showtime.format }}</p></div><div><strong>{{ istanbulTime(showtime.startsAt) }}</strong><p>{{ price(showtime) }}</p></div><a class="ticket-link" [href]="showtime.ticketUrl" target="_blank" rel="noopener noreferrer">Bilet bağlantısı</a></article> }</div> }
+    </section> }
+</main>

@@ -1,0 +1,111 @@
+name: ci
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.19.0
+          cache: pnpm
+          cache-dependency-path: src/frontend/cinepick-web/pnpm-lock.yaml
+      - run: dotnet restore CinePick.sln --configfile NuGet.Config
+      - run: dotnet list CinePick.sln package --vulnerable --include-transitive
+      - run: pnpm --dir src/frontend/cinepick-web install --frozen-lockfile
+      - run: pnpm --dir src/frontend/cinepick-web audit --audit-level high
+      - uses: gitleaks/gitleaks-action@v3
+
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet restore CinePick.sln --configfile NuGet.Config
+      - run: dotnet build CinePick.sln --no-restore
+      - run: dotnet test CinePick.sln --no-build --no-restore
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.19.0
+          cache: pnpm
+          cache-dependency-path: src/frontend/cinepick-web/pnpm-lock.yaml
+      - run: pnpm --dir src/frontend/cinepick-web install --frozen-lockfile
+      - run: pnpm --dir src/frontend/cinepick-web build
+      - run: pnpm --dir src/frontend/cinepick-web test
+
+  e2e:
+    runs-on: ubuntu-latest
+    env:
+      CINEPICK_E2E_ADMIN_ENABLED: "true"
+      CINEPICK_E2E_ADMIN_EMAIL: admin.e2e@cinepick.local
+      CINEPICK_E2E_ADMIN_PASSWORD: CinePick_E2E_${{ github.run_id }}!aA9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.19.0
+          cache: pnpm
+          cache-dependency-path: src/frontend/cinepick-web/pnpm-lock.yaml
+      - run: pnpm --dir src/frontend/cinepick-web install --frozen-lockfile
+      - run: pnpm --dir src/frontend/cinepick-web exec playwright install --with-deps chromium
+      - run: docker compose up -d --build --wait
+      - name: Smoke-test readiness and OpenAPI
+        run: |
+          curl --fail --silent http://localhost:4200/health/ready
+          curl --fail --silent http://localhost:8080/openapi/v1.json | jq -e '.paths["/api/recommendations"]'
+      - name: Scan API container
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: cinepick-api:latest
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          severity: CRITICAL,HIGH
+      - name: Scan frontend container
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: cinepick-frontend:latest
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          severity: CRITICAL,HIGH
+      - run: pnpm --dir src/frontend/cinepick-web e2e
+      - if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: src/frontend/cinepick-web/playwright-report
+          if-no-files-found: ignore
+          retention-days: 14
+      - if: always()
+        run: docker compose logs --no-color
+      - if: always()
+        run: docker compose down -v
