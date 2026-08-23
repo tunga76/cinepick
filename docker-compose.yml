@@ -48,6 +48,8 @@ services:
       dockerfile: Dockerfile.frontend
     ports:
       - "4200:80"
+    environment:
+      API_UPSTREAM: api:8080
     depends_on:
       api:
         condition: service_healthy
