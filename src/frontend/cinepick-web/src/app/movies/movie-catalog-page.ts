@@ -17,6 +17,7 @@ export class MovieCatalogPage implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly recommendationService = inject(RecommendationService);
   protected readonly movies = signal<readonly MovieListItem[]>([]);
+  protected readonly upcomingPreview = signal<readonly MovieListItem[]>([]);
   protected readonly genres = signal<readonly GenreListItem[]>([]);
   protected readonly totalCount = signal(0);
   protected readonly page = signal(1);
@@ -25,6 +26,8 @@ export class MovieCatalogPage implements OnInit {
   protected readonly totalPages = computed(() => Math.max(1, Math.ceil(this.totalCount() / this.pageSize)));
   protected readonly isLoadingMovies = signal(true);
   protected readonly movieLoadError = signal(false);
+  protected readonly upcomingPreviewLoading = signal(true);
+  protected readonly upcomingPreviewError = signal(false);
   protected readonly brokenPosterIds = signal<ReadonlySet<string>>(new Set());
   protected readonly requestText = new FormControl("Yarın 18:00'den sonra Kadıköy'de 100 dakikadan kısa bir film", { nonNullable: true });
   protected readonly recommendations = signal<readonly RecommendationItem[]>([]);
@@ -50,6 +53,19 @@ export class MovieCatalogPage implements OnInit {
           this.isLoadingMovies.set(false);
         },
         error: () => { this.movieLoadError.set(true); this.isLoadingMovies.set(false); },
+      });
+
+    this.movieCatalog.getUpcoming({}, 1, 4)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: response => {
+          this.upcomingPreview.set(response.items);
+          this.upcomingPreviewLoading.set(false);
+        },
+        error: () => {
+          this.upcomingPreviewError.set(true);
+          this.upcomingPreviewLoading.set(false);
+        },
       });
   }
 
@@ -84,6 +100,12 @@ export class MovieCatalogPage implements OnInit {
     if (mode === this.catalogMode()) return;
     this.catalogMode.set(mode);
     this.loadMovies(1);
+  }
+  protected showAllUpcoming(): void {
+    if (this.catalogMode() !== 'upcoming') {
+      this.catalogMode.set('upcoming');
+      this.loadMovies(1);
+    }
   }
   protected releaseDate(value: string): string {
     return new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })

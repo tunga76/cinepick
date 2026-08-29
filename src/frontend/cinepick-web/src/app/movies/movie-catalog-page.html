@@ -20,6 +20,32 @@
       <div class="recommendation-state">İsteğine uyan gerçek bir seans bulunamadı. Zaman veya konum koşulunu genişletebilirsin.</div>
     }
   </section>
+  <section class="upcoming-preview" aria-labelledby="upcoming-preview-title">
+    <div class="section-heading">
+      <div><p class="eyebrow">Vizyon takvimi</p><h2 id="upcoming-preview-title">Pek yakında</h2></div>
+      <a class="section-link" href="#catalog-title" (click)="showAllUpcoming()">Tümünü gör</a>
+    </div>
+    @if (upcomingPreviewLoading()) {
+      <div class="upcoming-preview__grid" aria-label="Yaklaşan filmler yükleniyor" aria-busy="true">
+        @for (item of [1, 2, 3, 4]; track item) { <div class="upcoming-preview-card movie-card--skeleton"></div> }
+      </div>
+    } @else if (!upcomingPreviewError() && upcomingPreview().length > 0) {
+      <div class="upcoming-preview__grid">
+        @for (movie of upcomingPreview(); track movie.id) {
+          <a class="upcoming-preview-card" [routerLink]="['/movies', movie.id]">
+            <div class="upcoming-preview-card__poster">
+              @if (posterUrl(movie); as poster) {
+                <img [src]="poster" [alt]="movie.title + ' film posteri'" loading="lazy" (error)="markPosterBroken(movie.id)" />
+              } @else {
+                <span aria-hidden="true">{{ movie.title.charAt(0) }}</span>
+              }
+            </div>
+            <div><p class="release-date">{{ releaseDate(movie.releaseDate) }}</p><h3>{{ movie.title }}</h3><p class="genres">{{ movie.genres.slice(0, 2).join(' · ') }}</p></div>
+          </a>
+        }
+      </div>
+    }
+  </section>
   <section class="catalog" aria-labelledby="catalog-title">
     <div class="catalog-tabs" role="tablist" aria-label="Film kataloğu">
       <button type="button" role="tab" [attr.aria-selected]="catalogMode() === 'now-playing'" [class.active]="catalogMode() === 'now-playing'" (click)="switchCatalog('now-playing')">Vizyonda</button>
