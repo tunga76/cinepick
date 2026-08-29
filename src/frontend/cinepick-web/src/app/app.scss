@@ -384,6 +384,9 @@ button.secondary { border: 1px solid #4b4558; background: transparent; color: #f
 .cinema-card h2 { font-size: 1.5rem; }
 .cinema-card p { color: #bdb8ca; }
 .showtime-list { display: grid; gap: 0.75rem; }
+.showtime-date-tabs { display: flex; overflow-x: auto; gap: 0.5rem; margin: 1rem 0; padding: 0.25rem 0.15rem 0.65rem; scrollbar-width: thin; }
+.showtime-date-tabs button { flex: 0 0 auto; min-height: 2.7rem; padding: 0 0.9rem; border: 1px solid #4b4558; background: #1a1822; color: #d7d1df; }
+.showtime-date-tabs button.active { border-color: #ff8ba0; background: #ff8ba0; color: #1a0710; }
 .showtime-card { display: grid; grid-template-columns: 1fr auto auto; gap: 1rem; align-items: center; padding: 1rem; border: 1px solid #393443; border-radius: 1rem; background: #1a1822; }
 .showtime-card h3 { margin-top: 0; color: #fff; }
 .showtime-card p { margin-bottom: 0; color: #bdb8ca; }

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { MovieCatalogService, MovieDetail, tmdbPosterUrl } from './movie-catalog.service';
 import { UserMovieState, UserProfileService } from '../profile/user-profile.service';
 import { CinemaCatalogService, ShowtimeListItem } from '../cinemas/cinema-catalog.service';
+import { istanbulDateKey, showtimeDateOptions } from '../cinemas/showtime-date';
 
 @Component({
   selector: 'app-movie-detail-page',
@@ -27,6 +28,10 @@ export class MovieDetailPage implements OnInit {
   protected readonly stateMessage = signal('');
   protected readonly posterFailed = signal(false);
   protected readonly showtimes = signal<readonly ShowtimeListItem[]>([]);
+  protected readonly selectedDate = signal('');
+  protected readonly dateOptions = computed(() => showtimeDateOptions(this.showtimes()));
+  protected readonly visibleShowtimes = computed(() => this.showtimes()
+    .filter(item => !this.selectedDate() || istanbulDateKey(item.startsAt) === this.selectedDate()));
   protected readonly showtimesLoading = signal(true);
   protected readonly showtimesError = signal(false);
   protected rating: number | null = null;
@@ -39,7 +44,11 @@ export class MovieDetailPage implements OnInit {
       error: () => this.hasError.set(true),
     });
     this.cinemas.getMovieShowtimes(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: showtimes => { this.showtimes.set(showtimes); this.showtimesLoading.set(false); },
+      next: showtimes => {
+        this.showtimes.set(showtimes);
+        this.selectedDate.set(showtimeDateOptions(showtimes)[0]?.key ?? '');
+        this.showtimesLoading.set(false);
+      },
       error: () => { this.showtimesError.set(true); this.showtimesLoading.set(false); },
     });
     this.profile.getMovieState(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
