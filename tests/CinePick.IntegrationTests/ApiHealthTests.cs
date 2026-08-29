@@ -170,9 +170,11 @@ public sealed class ApiHealthTests : IAsyncLifetime
 
         var detail = await client.GetFromJsonAsync<CinemaDetail>(
             new Uri($"/api/cinemas/{cinemas[0].Id}", UriKind.Relative), CancellationToken.None);
+        var showtimeFrom = DateTimeOffset.UtcNow.Date;
+        var showtimeTo = showtimeFrom.AddDays(8);
         var showtimes = await client.GetFromJsonAsync<IReadOnlyList<ShowtimeListItem>>(
-            new Uri("/api/showtimes?from=2026-08-15T00:00:00Z&to=2026-08-22T00:00:00Z",
-                UriKind.Relative), CancellationToken.None);
+            new Uri($"/api/showtimes?from={showtimeFrom:O}&to={showtimeTo:O}", UriKind.Relative),
+            CancellationToken.None);
 
         Assert.NotNull(detail);
         Assert.Equal(3, detail.Auditoriums.Count);
@@ -236,9 +238,11 @@ public sealed class ApiHealthTests : IAsyncLifetime
         using var cancelResponse = await client.PutAsJsonAsync(
             new Uri($"/api/development/showtimes/{selected.Id}/cancellation", UriKind.Relative),
             new { IsCancelled = true }, CancellationToken.None);
+        var showtimeFrom = DateTimeOffset.UtcNow.Date;
+        var showtimeTo = showtimeFrom.AddDays(8);
         var publicShowtimes = await client.GetFromJsonAsync<IReadOnlyList<ShowtimeListItem>>(
-            new Uri("/api/showtimes?from=2026-08-15T00:00:00Z&to=2026-08-22T00:00:00Z",
-                UriKind.Relative), CancellationToken.None);
+            new Uri($"/api/showtimes?from={showtimeFrom:O}&to={showtimeTo:O}", UriKind.Relative),
+            CancellationToken.None);
         using var restoreResponse = await client.PutAsJsonAsync(
             new Uri($"/api/development/showtimes/{selected.Id}/cancellation", UriKind.Relative),
             new { IsCancelled = false }, CancellationToken.None);

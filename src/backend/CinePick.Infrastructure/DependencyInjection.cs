@@ -148,7 +148,7 @@ public static class DependencyInjection
         await using var dbContext = await factory.CreateDbContextAsync(cancellationToken);
         await dbContext.Database.MigrateAsync(cancellationToken);
         await CinePickSeedData.SeedAsync(dbContext, cancellationToken);
-        await CinemaSeedData.SeedAsync(dbContext, cancellationToken);
+        await CinemaSeedData.SeedAsync(dbContext, TimeProvider.System, cancellationToken);
         await InitializeCinePickIdentityAsync(services, cancellationToken);
     }
 

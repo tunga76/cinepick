@@ -5,9 +5,19 @@ namespace CinePick.Infrastructure.Persistence;
 
 internal static class CinemaSeedData
 {
-    public static async Task SeedAsync(CinePickDbContext db, CancellationToken cancellationToken)
+    public static async Task SeedAsync(
+        CinePickDbContext db,
+        TimeProvider timeProvider,
+        CancellationToken cancellationToken)
     {
         if (await db.Cities.AnyAsync(cancellationToken)) return;
+
+        var movieIds = await db.Movies
+            .OrderByDescending(movie => movie.IsNowPlaying)
+            .ThenByDescending(movie => movie.Popularity)
+            .Select(movie => movie.Id)
+            .Take(12)
+            .ToArrayAsync(cancellationToken);
 
         var cityData = new[]
         {
@@ -42,18 +52,23 @@ internal static class CinemaSeedData
             }
         }
 
-        var movieIds = Enumerable.Range(1, 12).Select(number => Id("20000000", number)).ToArray();
-        var showtimeNumber = 0;
-        for (var day = 0; day < 7; day++)
+        if (movieIds.Length > 0)
         {
-            for (var index = 0; index < auditoriums.Count; index++)
+            var firstShowtimeDate = timeProvider.GetUtcNow().UtcDateTime.Date.AddDays(1);
+            var showtimeNumber = 0;
+            for (var day = 0; day < 7; day++)
             {
-                var auditorium = auditoriums[index];
-                var movieId = movieIds[(index + day) % movieIds.Length];
-                var startsAt = new DateTimeOffset(2026, 8, 15 + day, 15 + (index % 4) * 2, 30, 0, TimeSpan.Zero);
-                db.Showtimes.Add(new Showtime(Id("34000000", ++showtimeNumber), movieId, auditorium.Id,
-                    startsAt, 220m + ((index % 3) * 25m), "TRY", index % 2 == 0 ? "tr" : "en",
-                    index % 4 == 0 ? "IMAX" : "2D", $"https://tickets.example.invalid/showtimes/{showtimeNumber}"));
+                for (var index = 0; index < auditoriums.Count; index++)
+                {
+                    var auditorium = auditoriums[index];
+                    var movieId = movieIds[(index + day) % movieIds.Length];
+                    var startsAt = new DateTimeOffset(firstShowtimeDate.AddDays(day)
+                        .AddHours(15 + ((index % 4) * 2)).AddMinutes(30), TimeSpan.Zero);
+                    db.Showtimes.Add(new Showtime(Id("34000000", ++showtimeNumber), movieId,
+                        auditorium.Id, startsAt, 220m + ((index % 3) * 25m), "TRY",
+                        index % 2 == 0 ? "tr" : "en", index % 4 == 0 ? "IMAX" : "2D",
+                        $"https://tickets.example.invalid/showtimes/{showtimeNumber}"));
+                }
             }
         }
 
