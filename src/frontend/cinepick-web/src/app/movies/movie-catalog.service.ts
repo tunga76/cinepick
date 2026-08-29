@@ -48,8 +48,8 @@ export interface MovieCatalogFilters {
 export class MovieCatalogService {
   private readonly http = inject(HttpClient);
 
-  getNowPlaying(filters: MovieCatalogFilters = {}, pageSize = 12): Observable<PagedResponse<MovieListItem>> {
-    let params = new HttpParams().set('page', 1).set('pageSize', pageSize);
+  getNowPlaying(filters: MovieCatalogFilters = {}, page = 1, pageSize = 12): Observable<PagedResponse<MovieListItem>> {
+    let params = new HttpParams().set('page', page).set('pageSize', pageSize);
     if (filters.search) params = params.set('search', filters.search);
     if (filters.genreId) params = params.set('genreId', filters.genreId);
     if (filters.maximumRuntimeMinutes) params = params.set('maximumRuntimeMinutes', filters.maximumRuntimeMinutes);

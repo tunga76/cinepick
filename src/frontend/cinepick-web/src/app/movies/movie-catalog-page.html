@@ -50,6 +50,13 @@
             <h3>{{ movie.title }}</h3><p class="genres">{{ movie.genres.join(' · ') }}</p><p class="overview">{{ movie.overview }}</p></div>
         </a>
       }</div>
+      @if (totalPages() > 1) {
+        <nav class="pagination" aria-label="Film kataloğu sayfaları">
+          <button type="button" class="secondary" [disabled]="page() === 1 || isLoadingMovies()" (click)="goToPage(page() - 1)">Önceki</button>
+          <span aria-live="polite">Sayfa {{ page() }} / {{ totalPages() }}</span>
+          <button type="button" class="secondary" [disabled]="page() === totalPages() || isLoadingMovies()" (click)="goToPage(page() + 1)">Sonraki</button>
+        </nav>
+      }
     }
   </section>
 </main>

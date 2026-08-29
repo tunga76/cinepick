@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -19,6 +19,9 @@ export class MovieCatalogPage implements OnInit {
   protected readonly movies = signal<readonly MovieListItem[]>([]);
   protected readonly genres = signal<readonly GenreListItem[]>([]);
   protected readonly totalCount = signal(0);
+  protected readonly page = signal(1);
+  protected readonly pageSize = 12;
+  protected readonly totalPages = computed(() => Math.max(1, Math.ceil(this.totalCount() / this.pageSize)));
   protected readonly isLoadingMovies = signal(true);
   protected readonly movieLoadError = signal(false);
   protected readonly brokenPosterIds = signal<ReadonlySet<string>>(new Set());
@@ -35,12 +38,13 @@ export class MovieCatalogPage implements OnInit {
   });
 
   ngOnInit(): void {
-    forkJoin({ movies: this.movieCatalog.getNowPlaying(), genres: this.movieCatalog.getGenres() })
+    forkJoin({ movies: this.movieCatalog.getNowPlaying({}, 1, this.pageSize), genres: this.movieCatalog.getGenres() })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: ({ movies, genres }) => {
           this.movies.set(movies.items);
           this.totalCount.set(movies.totalCount);
+          this.page.set(movies.page);
           this.genres.set(genres);
           this.isLoadingMovies.set(false);
         },
@@ -48,7 +52,7 @@ export class MovieCatalogPage implements OnInit {
       });
   }
 
-  protected loadMovies(): void {
+  protected loadMovies(requestedPage = 1): void {
     const values = this.filters.getRawValue();
     this.isLoadingMovies.set(true);
     this.movieLoadError.set(false);
@@ -56,10 +60,11 @@ export class MovieCatalogPage implements OnInit {
       search: values.search.trim() || undefined,
       genreId: values.genreId || undefined,
       maximumRuntimeMinutes: values.maximumRuntimeMinutes ? Number(values.maximumRuntimeMinutes) : undefined,
-    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    }, requestedPage, this.pageSize).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
         this.movies.set(response.items);
         this.totalCount.set(response.totalCount);
+        this.page.set(response.page);
         this.isLoadingMovies.set(false);
       },
       error: () => { this.movieLoadError.set(true); this.isLoadingMovies.set(false); },
@@ -67,6 +72,10 @@ export class MovieCatalogPage implements OnInit {
   }
 
   protected resetFilters(): void { this.filters.reset(); this.loadMovies(); }
+  protected goToPage(page: number): void {
+    if (page < 1 || page > this.totalPages() || page === this.page()) return;
+    this.loadMovies(page);
+  }
   protected ageLabel(ageRating: number): string { return ageRating === 0 ? 'Genel İzleyici' : `${ageRating}+`; }
   protected posterUrl(movie: MovieListItem): string | null {
     return this.brokenPosterIds().has(movie.id) ? null : tmdbPosterUrl(movie.posterPath, 'w342');

@@ -162,6 +162,17 @@ h2 {
   gap: 1rem;
 }
 
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  color: #bdb8ca;
+}
+
+.pagination button { min-width: 6.5rem; }
+
 .movie-card {
   display: block;
   overflow: hidden;
