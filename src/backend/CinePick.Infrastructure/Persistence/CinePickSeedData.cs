@@ -18,11 +18,6 @@ internal static class CinePickSeedData
         CinePickDbContext dbContext,
         CancellationToken cancellationToken)
     {
-        if (await dbContext.Movies.AnyAsync(cancellationToken))
-        {
-            return;
-        }
-
         var genres = new[]
         {
             new Genre(Action, "Aksiyon", "aksiyon"),
@@ -34,6 +29,23 @@ internal static class CinePickSeedData
             new Genre(Thriller, "Gerilim", "gerilim"),
             new Genre(Romance, "Romantik", "romantik"),
         };
+
+        var existingGenreSlugs = await dbContext.Genres
+            .Select(genre => genre.Slug)
+            .ToHashSetAsync(StringComparer.OrdinalIgnoreCase, cancellationToken);
+        var missingGenres = genres
+            .Where(genre => !existingGenreSlugs.Contains(genre.Slug))
+            .ToArray();
+        if (missingGenres.Length > 0)
+        {
+            dbContext.Genres.AddRange(missingGenres);
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        if (await dbContext.Movies.AnyAsync(cancellationToken))
+        {
+            return;
+        }
 
         var movies = new[]
         {
@@ -59,7 +71,6 @@ internal static class CinePickSeedData
             CreateMovie(20, "Kuzey Ekspresi", "Northern Express", "Uzun bir tren yolculuğunda başlayan sohbet iki yabancının hayatına yeni bir yön verir.", new DateOnly(2026, 10, 2), 108, AgeRating.Age13, 0m, 31.4m, false, true, Drama, Romance),
         };
 
-        dbContext.Genres.AddRange(genres);
         dbContext.Movies.AddRange(movies);
         await dbContext.SaveChangesAsync(cancellationToken);
     }
