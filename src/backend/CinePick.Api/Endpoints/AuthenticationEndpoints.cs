@@ -10,8 +10,7 @@ public static class AuthenticationEndpoints
 {
     public static IEndpointRouteBuilder MapAuthenticationEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/api/auth").WithTags("Authentication")
-            .RequireRateLimiting("auth");
+        var group = endpoints.MapGroup("/api/auth").WithTags("Authentication");
 
         group.MapGet("/csrf", (IAntiforgery antiforgery, HttpContext context) =>
         {
@@ -20,8 +19,10 @@ public static class AuthenticationEndpoints
         }).AllowAnonymous();
 
         group.MapPost("/register", RegisterAsync).AllowAnonymous()
+            .RequireRateLimiting("auth")
             .AddEndpointFilter(AntiforgeryEndpointFilter.ValidateAsync);
         group.MapPost("/login", LoginAsync).AllowAnonymous()
+            .RequireRateLimiting("auth")
             .AddEndpointFilter(AntiforgeryEndpointFilter.ValidateAsync);
         group.MapPost("/logout", LogoutAsync).RequireAuthorization()
             .AddEndpointFilter(AntiforgeryEndpointFilter.ValidateAsync);

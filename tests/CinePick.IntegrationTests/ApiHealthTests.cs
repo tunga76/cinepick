@@ -507,7 +507,7 @@ public sealed class ApiHealthTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task ApiAddsSecurityHeadersAndRateLimitsAuthenticationTraffic()
+    public async Task ApiAddsSecurityHeadersAndRateLimitsAuthenticationMutations()
     {
         await using var factory = CreateFactory();
         using var client = factory.CreateClient();
@@ -519,14 +519,32 @@ public sealed class ApiHealthTests : IAsyncLifetime
         Assert.Contains("no-store", first.Headers.CacheControl?.ToString(), StringComparison.Ordinal);
         Assert.Contains("no-cache", first.Headers.Pragma.Select(value => value.Name));
 
-        for (var index = 1; index < 20; index++)
+        for (var index = 0; index < 25; index++)
         {
-            using var accepted = await client.GetAsync(
+            using var sessionCheck = await client.GetAsync(
+                new Uri("/api/auth/me", UriKind.Relative), CancellationToken.None);
+            Assert.Equal(System.Net.HttpStatusCode.Unauthorized, sessionCheck.StatusCode);
+            using var csrf = await client.GetAsync(
                 new Uri("/api/auth/csrf", UriKind.Relative), CancellationToken.None);
-            accepted.EnsureSuccessStatusCode();
+            csrf.EnsureSuccessStatusCode();
         }
-        using var limited = await client.GetAsync(
+
+        var token = await client.GetFromJsonAsync<CsrfResponse>(
             new Uri("/api/auth/csrf", UriKind.Relative), CancellationToken.None);
+        Assert.NotNull(token);
+        client.DefaultRequestHeaders.Add("X-CSRF-TOKEN", token.Token);
+        for (var index = 0; index < 20; index++)
+        {
+            using var rejected = await client.PostAsJsonAsync(
+                new Uri("/api/auth/login", UriKind.Relative),
+                new { Email = "missing@example.test", Password = "Wrong!Pass1" },
+                CancellationToken.None);
+            Assert.Equal(System.Net.HttpStatusCode.Unauthorized, rejected.StatusCode);
+        }
+        using var limited = await client.PostAsJsonAsync(
+            new Uri("/api/auth/login", UriKind.Relative),
+            new { Email = "missing@example.test", Password = "Wrong!Pass1" },
+            CancellationToken.None);
         Assert.Equal(System.Net.HttpStatusCode.TooManyRequests, limited.StatusCode);
     }
 
