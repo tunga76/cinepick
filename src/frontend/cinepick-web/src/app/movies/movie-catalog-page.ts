@@ -21,6 +21,7 @@ export class MovieCatalogPage implements OnInit {
   protected readonly totalCount = signal(0);
   protected readonly page = signal(1);
   protected readonly pageSize = 12;
+  protected readonly catalogMode = signal<'now-playing' | 'upcoming'>('now-playing');
   protected readonly totalPages = computed(() => Math.max(1, Math.ceil(this.totalCount() / this.pageSize)));
   protected readonly isLoadingMovies = signal(true);
   protected readonly movieLoadError = signal(false);
@@ -56,7 +57,10 @@ export class MovieCatalogPage implements OnInit {
     const values = this.filters.getRawValue();
     this.isLoadingMovies.set(true);
     this.movieLoadError.set(false);
-    this.movieCatalog.getNowPlaying({
+    const request = this.catalogMode() === 'now-playing'
+      ? this.movieCatalog.getNowPlaying.bind(this.movieCatalog)
+      : this.movieCatalog.getUpcoming.bind(this.movieCatalog);
+    request({
       search: values.search.trim() || undefined,
       genreId: values.genreId || undefined,
       maximumRuntimeMinutes: values.maximumRuntimeMinutes ? Number(values.maximumRuntimeMinutes) : undefined,
@@ -75,6 +79,15 @@ export class MovieCatalogPage implements OnInit {
   protected goToPage(page: number): void {
     if (page < 1 || page > this.totalPages() || page === this.page()) return;
     this.loadMovies(page);
+  }
+  protected switchCatalog(mode: 'now-playing' | 'upcoming'): void {
+    if (mode === this.catalogMode()) return;
+    this.catalogMode.set(mode);
+    this.loadMovies(1);
+  }
+  protected releaseDate(value: string): string {
+    return new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })
+      .format(new Date(`${value}T00:00:00Z`));
   }
   protected ageLabel(ageRating: number): string { return ageRating === 0 ? 'Genel İzleyici' : `${ageRating}+`; }
   protected posterUrl(movie: MovieListItem): string | null {

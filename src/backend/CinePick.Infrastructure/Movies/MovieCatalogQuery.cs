@@ -92,9 +92,10 @@ internal sealed class MovieCatalogQuery(
         }
 
         var totalCount = await query.CountAsync(cancellationToken);
-        var items = await query
-            .OrderByDescending(movie => movie.Popularity)
-            .ThenBy(movie => movie.Title)
+        var orderedQuery = nowPlaying
+            ? query.OrderByDescending(movie => movie.Popularity).ThenBy(movie => movie.Title)
+            : query.OrderBy(movie => movie.ReleaseDate).ThenByDescending(movie => movie.Popularity);
+        var items = await orderedQuery
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(movie => new MovieListItem(

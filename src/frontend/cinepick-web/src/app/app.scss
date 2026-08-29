@@ -321,6 +321,26 @@ h3 {
   background: #1a1822;
 }
 
+.catalog-tabs {
+  display: inline-flex;
+  gap: 0.35rem;
+  margin-bottom: 1.25rem;
+  padding: 0.3rem;
+  border: 1px solid #393443;
+  border-radius: 0.9rem;
+  background: #111018;
+}
+
+.catalog-tabs button {
+  padding: 0.65rem 1rem;
+  border: 0;
+  background: transparent;
+  color: #bdb8ca;
+}
+
+.catalog-tabs button.active { background: #ff8ba0; color: #1a0710; }
+.release-date { margin: 0 0 0.45rem; color: #d7d1df; font-size: 0.85rem; }
+
 .catalog-filters label { display: grid; gap: 0.4rem; color: #bdb8ca; font-size: 0.85rem; }
 .catalog-filters input,
 .catalog-filters select {

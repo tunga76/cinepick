@@ -56,6 +56,14 @@ export class MovieCatalogService {
     return this.http.get<PagedResponse<MovieListItem>>('/api/movies/now-playing', { params });
   }
 
+  getUpcoming(filters: MovieCatalogFilters = {}, page = 1, pageSize = 12): Observable<PagedResponse<MovieListItem>> {
+    let params = new HttpParams().set('page', page).set('pageSize', pageSize);
+    if (filters.search) params = params.set('search', filters.search);
+    if (filters.genreId) params = params.set('genreId', filters.genreId);
+    if (filters.maximumRuntimeMinutes) params = params.set('maximumRuntimeMinutes', filters.maximumRuntimeMinutes);
+    return this.http.get<PagedResponse<MovieListItem>>('/api/movies/upcoming', { params });
+  }
+
   getGenres(): Observable<GenreListItem[]> { return this.http.get<GenreListItem[]>('/api/genres'); }
   getById(id: string): Observable<MovieDetail> { return this.http.get<MovieDetail>(`/api/movies/${id}`); }
 }

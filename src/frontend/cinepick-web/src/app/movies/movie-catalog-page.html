@@ -21,7 +21,11 @@
     }
   </section>
   <section class="catalog" aria-labelledby="catalog-title">
-    <div class="section-heading"><div><p class="eyebrow">Şimdi sinemalarda</p><h2 id="catalog-title">Vizyondaki filmler</h2></div>
+    <div class="catalog-tabs" role="tablist" aria-label="Film kataloğu">
+      <button type="button" role="tab" [attr.aria-selected]="catalogMode() === 'now-playing'" [class.active]="catalogMode() === 'now-playing'" (click)="switchCatalog('now-playing')">Vizyonda</button>
+      <button type="button" role="tab" [attr.aria-selected]="catalogMode() === 'upcoming'" [class.active]="catalogMode() === 'upcoming'" (click)="switchCatalog('upcoming')">Yakında</button>
+    </div>
+    <div class="section-heading"><div><p class="eyebrow">{{ catalogMode() === 'now-playing' ? 'Şimdi sinemalarda' : 'Vizyon takvimi' }}</p><h2 id="catalog-title">{{ catalogMode() === 'now-playing' ? 'Vizyondaki filmler' : 'Yakında gösterime girecekler' }}</h2></div>
       @if (!isLoadingMovies() && !movieLoadError()) { <span class="result-count">{{ totalCount() }} film</span> }
     </div>
     <form class="catalog-filters" [formGroup]="filters" (ngSubmit)="loadMovies()">
@@ -35,7 +39,7 @@
     } @else if (movieLoadError()) {
       <div class="state-card" role="alert"><p>Filmler şu anda yüklenemedi.</p><button type="button" (click)="loadMovies()">Tekrar dene</button></div>
     } @else if (movies().length === 0) {
-      <div class="state-card"><p>Filtrelere uyan vizyon filmi bulunamadı.</p></div>
+      <div class="state-card"><p>Filtrelere uyan {{ catalogMode() === 'now-playing' ? 'vizyon filmi' : 'yakında filmi' }} bulunamadı.</p></div>
     } @else {
       <div class="movie-grid">@for (movie of movies(); track movie.id) {
         <a class="movie-card" [routerLink]="['/movies', movie.id]">
@@ -47,7 +51,9 @@
             }
           </div>
           <div class="movie-card__body"><div class="movie-card__meta"><span>{{ movie.runtimeMinutes }} dk</span><span>{{ ageLabel(movie.ageRating) }}</span><span class="rating">★ {{ movie.voteAverage }}</span></div>
-            <h3>{{ movie.title }}</h3><p class="genres">{{ movie.genres.join(' · ') }}</p><p class="overview">{{ movie.overview }}</p></div>
+            <h3>{{ movie.title }}</h3>
+            @if (catalogMode() === 'upcoming') { <p class="release-date">Vizyon: {{ releaseDate(movie.releaseDate) }}</p> }
+            <p class="genres">{{ movie.genres.join(' · ') }}</p><p class="overview">{{ movie.overview }}</p></div>
         </a>
       }</div>
       @if (totalPages() > 1) {

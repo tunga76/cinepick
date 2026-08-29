@@ -62,6 +62,7 @@ public sealed class ApiHealthTests : IAsyncLifetime
         var paths = document.RootElement.GetProperty("paths");
 
         Assert.True(paths.TryGetProperty("/api/movies/now-playing", out _));
+        Assert.True(paths.TryGetProperty("/api/movies/upcoming", out _));
         Assert.True(paths.TryGetProperty("/api/recommendations", out _));
         Assert.True(paths.TryGetProperty("/api/auth/login", out _));
         Assert.True(paths.TryGetProperty("/api/admin/movie-catalog-syncs", out _));
@@ -103,6 +104,23 @@ public sealed class ApiHealthTests : IAsyncLifetime
         Assert.True(response.TotalCount >= 12);
         Assert.Equal(12, response.Items.Count);
         Assert.All(response.Items, movie => Assert.NotEmpty(movie.Genres));
+    }
+
+    [Fact]
+    public async Task UpcomingEndpointReturnsMoviesOrderedByReleaseDate()
+    {
+        await using var factory = CreateFactory();
+        using var client = factory.CreateClient();
+
+        var response = await client.GetFromJsonAsync<PagedResponse<MovieListItem>>(
+            new Uri("/api/movies/upcoming?page=1&pageSize=12", UriKind.Relative),
+            CancellationToken.None);
+
+        Assert.NotNull(response);
+        Assert.NotEmpty(response.Items);
+        Assert.All(response.Items, movie => Assert.True(movie.ReleaseDate >= new DateOnly(2026, 8, 21)));
+        Assert.Equal(response.Items.OrderBy(movie => movie.ReleaseDate).Select(movie => movie.Id),
+            response.Items.Select(movie => movie.Id));
     }
 
     [Fact]
