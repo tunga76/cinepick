@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { CinemaCatalogService, CinemaDetail, ShowtimeListItem } from './cinema-catalog.service';
-import { istanbulDateKey, showtimeDateOptions } from './showtime-date';
+import { istanbulDateKey, showtimeDateOptions, showtimeFacetOptions } from './showtime-date';
 
-@Component({ selector: 'app-cinema-detail-page', imports: [RouterLink], templateUrl: './cinema-detail-page.html', changeDetection: ChangeDetectionStrategy.OnPush })
+@Component({ selector: 'app-cinema-detail-page', imports: [RouterLink, FormsModule], templateUrl: './cinema-detail-page.html', changeDetection: ChangeDetectionStrategy.OnPush })
 export class CinemaDetailPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly catalog = inject(CinemaCatalogService);
@@ -13,9 +14,15 @@ export class CinemaDetailPage implements OnInit {
   protected readonly cinema = signal<CinemaDetail | null>(null);
   protected readonly showtimes = signal<readonly ShowtimeListItem[]>([]);
   protected readonly selectedDate = signal('');
+  protected readonly selectedLanguage = signal('');
+  protected readonly selectedFormat = signal('');
   protected readonly dateOptions = computed(() => showtimeDateOptions(this.showtimes()));
+  protected readonly languageOptions = computed(() => showtimeFacetOptions(this.showtimes(), this.selectedDate(), 'language'));
+  protected readonly formatOptions = computed(() => showtimeFacetOptions(this.showtimes(), this.selectedDate(), 'format'));
   protected readonly visibleShowtimes = computed(() => this.showtimes()
-    .filter(item => !this.selectedDate() || istanbulDateKey(item.startsAt) === this.selectedDate()));
+    .filter(item => (!this.selectedDate() || istanbulDateKey(item.startsAt) === this.selectedDate())
+      && (!this.selectedLanguage() || item.language === this.selectedLanguage())
+      && (!this.selectedFormat() || item.format === this.selectedFormat())));
   protected readonly error = signal(false);
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -25,6 +32,9 @@ export class CinemaDetailPage implements OnInit {
         this.cinema.set(result.cinema); this.showtimes.set(result.showtimes);
         this.selectedDate.set(showtimeDateOptions(result.showtimes)[0]?.key ?? '');
       }, error: () => this.error.set(true) });
+  }
+  protected selectDate(date: string): void {
+    this.selectedDate.set(date); this.selectedLanguage.set(''); this.selectedFormat.set('');
   }
   protected istanbulTime(value: string): string {
     return new Intl.DateTimeFormat('tr-TR', { timeZone: 'Europe/Istanbul', weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(value));

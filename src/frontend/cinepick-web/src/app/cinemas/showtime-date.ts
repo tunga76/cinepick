@@ -22,3 +22,12 @@ export function showtimeDateOptions(showtimes: readonly ShowtimeListItem[]): Sho
   return [...unique].sort(([left], [right]) => left.localeCompare(right))
     .map(([key, label]) => ({ key, label }));
 }
+
+export function showtimeFacetOptions(
+  showtimes: readonly ShowtimeListItem[], dateKey: string, field: 'language' | 'format',
+): string[] {
+  return [...new Set(showtimes
+    .filter(item => !dateKey || istanbulDateKey(item.startsAt) === dateKey)
+    .map(item => item[field]))]
+    .sort((left, right) => left.localeCompare(right, 'tr-TR'));
+}

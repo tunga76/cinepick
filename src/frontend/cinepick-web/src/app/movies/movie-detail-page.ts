@@ -6,7 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { MovieCatalogService, MovieDetail, tmdbPosterUrl } from './movie-catalog.service';
 import { UserMovieState, UserProfileService } from '../profile/user-profile.service';
 import { CinemaCatalogService, ShowtimeListItem } from '../cinemas/cinema-catalog.service';
-import { istanbulDateKey, showtimeDateOptions } from '../cinemas/showtime-date';
+import { istanbulDateKey, showtimeDateOptions, showtimeFacetOptions } from '../cinemas/showtime-date';
 
 @Component({
   selector: 'app-movie-detail-page',
@@ -29,9 +29,15 @@ export class MovieDetailPage implements OnInit {
   protected readonly posterFailed = signal(false);
   protected readonly showtimes = signal<readonly ShowtimeListItem[]>([]);
   protected readonly selectedDate = signal('');
+  protected readonly selectedLanguage = signal('');
+  protected readonly selectedFormat = signal('');
   protected readonly dateOptions = computed(() => showtimeDateOptions(this.showtimes()));
+  protected readonly languageOptions = computed(() => showtimeFacetOptions(this.showtimes(), this.selectedDate(), 'language'));
+  protected readonly formatOptions = computed(() => showtimeFacetOptions(this.showtimes(), this.selectedDate(), 'format'));
   protected readonly visibleShowtimes = computed(() => this.showtimes()
-    .filter(item => !this.selectedDate() || istanbulDateKey(item.startsAt) === this.selectedDate()));
+    .filter(item => (!this.selectedDate() || istanbulDateKey(item.startsAt) === this.selectedDate())
+      && (!this.selectedLanguage() || item.language === this.selectedLanguage())
+      && (!this.selectedFormat() || item.format === this.selectedFormat())));
   protected readonly showtimesLoading = signal(true);
   protected readonly showtimesError = signal(false);
   protected rating: number | null = null;
@@ -74,6 +80,9 @@ export class MovieDetailPage implements OnInit {
     return new Intl.NumberFormat('tr-TR', {
       style: 'currency', currency: showtime.currency,
     }).format(showtime.price);
+  }
+  protected selectDate(date: string): void {
+    this.selectedDate.set(date); this.selectedLanguage.set(''); this.selectedFormat.set('');
   }
 
   protected saveState(change: Partial<Pick<UserMovieState, 'isFavorite' | 'isWatched'>> = {}): void {
