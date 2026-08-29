@@ -16,4 +16,6 @@ public sealed record MovieMetadataItem(
     decimal Popularity,
     bool IsNowPlaying,
     bool IsUpcoming,
-    IReadOnlyList<string> GenreSlugs);
+    IReadOnlyList<string> GenreSlugs,
+    string? PosterPath = null,
+    string? BackdropPath = null);

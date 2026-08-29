@@ -18,6 +18,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using System.Net.Http.Headers;
 
 namespace CinePick.Infrastructure;
 
@@ -69,7 +71,27 @@ public static class DependencyInjection
         services.AddAuthorizationBuilder()
             .AddPolicy("Admin", policy => policy.RequireRole("Admin"));
         services.AddScoped<IMovieCatalogQuery, MovieCatalogQuery>();
-        services.AddScoped<IMovieMetadataProvider, MockMovieMetadataProvider>();
+        services.Configure<TmdbOptions>(configuration.GetSection(TmdbOptions.SectionName));
+        services.AddScoped<MockMovieMetadataProvider>();
+        services.AddHttpClient<TmdbMovieMetadataProvider>((serviceProvider, client) =>
+        {
+            var options = serviceProvider.GetRequiredService<IOptions<TmdbOptions>>().Value;
+            client.BaseAddress = new Uri(options.BaseUrl);
+            client.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", options.ReadAccessToken);
+            client.DefaultRequestHeaders.Accept.Add(
+                new MediaTypeWithQualityHeaderValue("application/json"));
+            client.Timeout = TimeSpan.FromSeconds(15);
+        });
+        services.AddScoped<IMovieMetadataProvider>(serviceProvider =>
+        {
+            var mode = configuration["MovieProviders:Mode"] ?? "Mock";
+            var options = serviceProvider.GetRequiredService<IOptions<TmdbOptions>>().Value;
+            return string.Equals(mode, "TMDb", StringComparison.OrdinalIgnoreCase)
+                && !string.IsNullOrWhiteSpace(options.ReadAccessToken)
+                    ? serviceProvider.GetRequiredService<TmdbMovieMetadataProvider>()
+                    : serviceProvider.GetRequiredService<MockMovieMetadataProvider>();
+        });
         services.AddScoped<IMovieCatalogSynchronizer, MovieCatalogSynchronizer>();
         services.AddScoped<ICinemaCatalogQuery, CinemaCatalogQuery>();
         services.AddScoped<IShowtimeProvider, MockShowtimeProvider>();

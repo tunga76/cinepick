@@ -68,7 +68,7 @@ The frontend is available at `http://localhost:4200` and proxies `/api` and `/he
 
 ## Providers and authentication
 
-Movie metadata, showtime, and AI modes default to `Mock`. Empty TMDb or AI keys do not prevent startup. To enable the OpenAI Responses ranker, set `AI__Mode=OpenAI` and `AI__ApiKey`; `AI__Model` and `AI__Endpoint` are optional. Recommendation persistence is enabled, while real movie and showtime providers remain later work.
+Movie metadata, showtime, and AI modes default to `Mock`. Empty TMDb or AI keys do not prevent startup. To enable TMDb movie metadata, set `MovieProviders__Mode=TMDb` and store the application read access token in `TMDb__ReadAccessToken`; language, region, and page limits default to `tr-TR`, `TR`, and `2`. This affects movie metadata only—showtimes remain on their separately configured provider. To enable the OpenAI Responses ranker, set `AI__Mode=OpenAI` and `AI__ApiKey`; `AI__Model` and `AI__Endpoint` are optional.
 
 `Database__Initialize=true` is set only in the local Compose environment so migrations and deterministic mock seed data are applied automatically. Production keeps this disabled; migrations should be applied as an explicit deployment step.
 

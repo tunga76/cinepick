@@ -22,7 +22,9 @@ public sealed class Movie
         decimal popularity,
         bool isNowPlaying,
         bool isUpcoming,
-        DateTimeOffset lastSynchronizedAt)
+        DateTimeOffset lastSynchronizedAt,
+        string? posterPath = null,
+        string? backdropPath = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(externalProviderId);
         ArgumentException.ThrowIfNullOrWhiteSpace(externalMovieId);
@@ -45,6 +47,8 @@ public sealed class Movie
         IsNowPlaying = isNowPlaying;
         IsUpcoming = isUpcoming;
         LastSynchronizedAt = lastSynchronizedAt;
+        PosterPath = posterPath;
+        BackdropPath = backdropPath;
     }
 
     public Guid Id { get; private set; }
@@ -80,7 +84,9 @@ public sealed class Movie
         decimal popularity,
         bool isNowPlaying,
         bool isUpcoming,
-        DateTimeOffset synchronizedAt)
+        DateTimeOffset synchronizedAt,
+        string? posterPath = null,
+        string? backdropPath = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(title);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(runtimeMinutes);
@@ -94,6 +100,15 @@ public sealed class Movie
         VoteAverage = voteAverage;
         VoteCount = voteCount;
         Popularity = popularity;
+        IsNowPlaying = isNowPlaying;
+        IsUpcoming = isUpcoming;
+        LastSynchronizedAt = synchronizedAt;
+        PosterPath = posterPath;
+        BackdropPath = backdropPath;
+    }
+
+    public void UpdateAvailability(bool isNowPlaying, bool isUpcoming, DateTimeOffset synchronizedAt)
+    {
         IsNowPlaying = isNowPlaying;
         IsUpcoming = isUpcoming;
         LastSynchronizedAt = synchronizedAt;

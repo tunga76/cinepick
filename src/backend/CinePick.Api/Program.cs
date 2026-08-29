@@ -105,9 +105,15 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
 {
     Predicate = registration => registration.Tags.Contains("ready"),
 });
+var configuredMovieProvider = builder.Configuration["MovieProviders:Mode"];
+var effectiveMovieProvider = string.Equals(configuredMovieProvider, "TMDb",
+        StringComparison.OrdinalIgnoreCase)
+    && !string.IsNullOrWhiteSpace(builder.Configuration["TMDb:ReadAccessToken"])
+        ? "tmdb"
+        : "mock";
 app.MapGet("/api/system/info", () => TypedResults.Ok(new SystemInfoResponse(
         "CinePick API",
-        "mock",
+        effectiveMovieProvider,
         DateTimeOffset.UtcNow)))
     .WithName("GetSystemInfo")
     .WithTags("System");

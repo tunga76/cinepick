@@ -24,16 +24,23 @@ internal sealed class MovieCatalogSynchronizer(
         {
             var items = await provider.GetCatalogAsync(cancellationToken);
             var genres = await dbContext.Genres.ToDictionaryAsync(genre => genre.Slug, cancellationToken);
-            var externalIds = items.Select(item => item.ExternalId).ToArray();
             var existing = await dbContext.Movies
                 .Include(movie => movie.MovieGenres)
-                .Where(movie => movie.ExternalProviderId == provider.ProviderId
-                    && externalIds.Contains(movie.ExternalMovieId))
+                .Where(movie => movie.ExternalProviderId == provider.ProviderId)
                 .ToDictionaryAsync(movie => movie.ExternalMovieId, cancellationToken);
 
             var inserted = 0;
             var updated = 0;
             var synchronizedAt = timeProvider.GetUtcNow();
+            var currentExternalIds = items.Select(item => item.ExternalId).ToHashSet(StringComparer.Ordinal);
+            foreach (var staleMovie in existing.Values.Where(movie =>
+                         !currentExternalIds.Contains(movie.ExternalMovieId)
+                         && (movie.IsNowPlaying || movie.IsUpcoming)))
+            {
+                staleMovie.UpdateAvailability(false, false, synchronizedAt);
+                updated++;
+            }
+
             foreach (var item in items)
             {
                 if (!existing.TryGetValue(item.ExternalId, out var movie))
@@ -41,7 +48,8 @@ internal sealed class MovieCatalogSynchronizer(
                     movie = new Movie(Guid.NewGuid(), provider.ProviderId, item.ExternalId, item.Title,
                         item.OriginalTitle, item.Overview, item.ReleaseDate, item.RuntimeMinutes,
                         item.OriginalLanguage, item.AgeRating, item.VoteAverage, item.VoteCount,
-                        item.Popularity, item.IsNowPlaying, item.IsUpcoming, synchronizedAt);
+                        item.Popularity, item.IsNowPlaying, item.IsUpcoming, synchronizedAt,
+                        item.PosterPath, item.BackdropPath);
                     dbContext.Movies.Add(movie);
                     inserted++;
                 }
@@ -49,7 +57,8 @@ internal sealed class MovieCatalogSynchronizer(
                 {
                     movie.UpdateMetadata(item.Title, item.OriginalTitle, item.Overview, item.ReleaseDate,
                         item.RuntimeMinutes, item.OriginalLanguage, item.AgeRating, item.VoteAverage,
-                        item.VoteCount, item.Popularity, item.IsNowPlaying, item.IsUpcoming, synchronizedAt);
+                        item.VoteCount, item.Popularity, item.IsNowPlaying, item.IsUpcoming,
+                        synchronizedAt, item.PosterPath, item.BackdropPath);
                     movie.MovieGenres.Clear();
                     updated++;
                 }
