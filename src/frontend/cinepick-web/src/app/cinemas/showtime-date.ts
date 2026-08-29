@@ -1,6 +1,7 @@
 import { ShowtimeListItem } from './cinema-catalog.service';
 
 export interface ShowtimeDateOption { key: string; label: string; }
+export type ShowtimeSort = 'time' | 'price';
 
 export function istanbulDateKey(value: string): string {
   const parts = new Intl.DateTimeFormat('en-CA', {
@@ -30,4 +31,14 @@ export function showtimeFacetOptions(
     .filter(item => !dateKey || istanbulDateKey(item.startsAt) === dateKey)
     .map(item => item[field]))]
     .sort((left, right) => left.localeCompare(right, 'tr-TR'));
+}
+
+export function sortShowtimes(
+  showtimes: readonly ShowtimeListItem[], sort: ShowtimeSort,
+): ShowtimeListItem[] {
+  return [...showtimes].sort((left, right) => {
+    if (sort === 'price' && left.price !== right.price) return left.price - right.price;
+    const timeComparison = left.startsAt.localeCompare(right.startsAt);
+    return timeComparison || left.id.localeCompare(right.id);
+  });
 }

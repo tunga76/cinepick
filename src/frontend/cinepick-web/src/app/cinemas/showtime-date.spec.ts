@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ShowtimeListItem } from './cinema-catalog.service';
-import { istanbulDateKey, showtimeDateOptions, showtimeFacetOptions } from './showtime-date';
+import { istanbulDateKey, showtimeDateOptions, showtimeFacetOptions, sortShowtimes } from './showtime-date';
 
 const showtime = (id: string, startsAt: string): ShowtimeListItem => ({
   id, startsAt, endsAt: startsAt, movieId: 'movie', movieTitle: 'Film', cinemaId: 'cinema',
@@ -32,5 +32,17 @@ describe('showtime date helpers', () => {
     expect(showtimeFacetOptions(items, '2026-08-30', 'format')).toEqual(['3D']);
     expect(showtimeFacetOptions(items, '2026-08-29', 'cinemaName'))
       .toEqual(['Atlas Sineması', 'Moda Sineması']);
+  });
+
+  it('sorts by price and then by start time', () => {
+    const items = [
+      { ...showtime('late-cheap', '2026-08-29T19:00:00Z'), price: 100 },
+      { ...showtime('expensive', '2026-08-29T17:00:00Z'), price: 150 },
+      { ...showtime('early-cheap', '2026-08-29T18:00:00Z'), price: 100 },
+    ];
+    expect(sortShowtimes(items, 'price').map(item => item.id))
+      .toEqual(['early-cheap', 'late-cheap', 'expensive']);
+    expect(sortShowtimes(items, 'time').map(item => item.id))
+      .toEqual(['expensive', 'early-cheap', 'late-cheap']);
   });
 });

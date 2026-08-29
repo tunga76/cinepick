@@ -4,7 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { CinemaCatalogService, CinemaDetail, ShowtimeListItem } from './cinema-catalog.service';
-import { istanbulDateKey, showtimeDateOptions, showtimeFacetOptions } from './showtime-date';
+import { istanbulDateKey, showtimeDateOptions, showtimeFacetOptions, ShowtimeSort, sortShowtimes } from './showtime-date';
 
 @Component({ selector: 'app-cinema-detail-page', imports: [RouterLink, FormsModule], templateUrl: './cinema-detail-page.html', changeDetection: ChangeDetectionStrategy.OnPush })
 export class CinemaDetailPage implements OnInit {
@@ -16,13 +16,14 @@ export class CinemaDetailPage implements OnInit {
   protected readonly selectedDate = signal('');
   protected readonly selectedLanguage = signal('');
   protected readonly selectedFormat = signal('');
+  protected readonly selectedSort = signal<ShowtimeSort>('time');
   protected readonly dateOptions = computed(() => showtimeDateOptions(this.showtimes()));
   protected readonly languageOptions = computed(() => showtimeFacetOptions(this.showtimes(), this.selectedDate(), 'language'));
   protected readonly formatOptions = computed(() => showtimeFacetOptions(this.showtimes(), this.selectedDate(), 'format'));
-  protected readonly visibleShowtimes = computed(() => this.showtimes()
+  protected readonly visibleShowtimes = computed(() => sortShowtimes(this.showtimes()
     .filter(item => (!this.selectedDate() || istanbulDateKey(item.startsAt) === this.selectedDate())
       && (!this.selectedLanguage() || item.language === this.selectedLanguage())
-      && (!this.selectedFormat() || item.format === this.selectedFormat())));
+      && (!this.selectedFormat() || item.format === this.selectedFormat())), this.selectedSort()));
   protected readonly error = signal(false);
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');

@@ -6,7 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { MovieCatalogService, MovieDetail, tmdbPosterUrl } from './movie-catalog.service';
 import { UserMovieState, UserProfileService } from '../profile/user-profile.service';
 import { CinemaCatalogService, ShowtimeListItem } from '../cinemas/cinema-catalog.service';
-import { istanbulDateKey, showtimeDateOptions, showtimeFacetOptions } from '../cinemas/showtime-date';
+import { istanbulDateKey, showtimeDateOptions, showtimeFacetOptions, ShowtimeSort, sortShowtimes } from '../cinemas/showtime-date';
 
 @Component({
   selector: 'app-movie-detail-page',
@@ -32,15 +32,16 @@ export class MovieDetailPage implements OnInit {
   protected readonly selectedLanguage = signal('');
   protected readonly selectedFormat = signal('');
   protected readonly selectedCinema = signal('');
+  protected readonly selectedSort = signal<ShowtimeSort>('time');
   protected readonly dateOptions = computed(() => showtimeDateOptions(this.showtimes()));
   protected readonly languageOptions = computed(() => showtimeFacetOptions(this.showtimes(), this.selectedDate(), 'language'));
   protected readonly formatOptions = computed(() => showtimeFacetOptions(this.showtimes(), this.selectedDate(), 'format'));
   protected readonly cinemaOptions = computed(() => showtimeFacetOptions(this.showtimes(), this.selectedDate(), 'cinemaName'));
-  protected readonly visibleShowtimes = computed(() => this.showtimes()
+  protected readonly visibleShowtimes = computed(() => sortShowtimes(this.showtimes()
     .filter(item => (!this.selectedDate() || istanbulDateKey(item.startsAt) === this.selectedDate())
       && (!this.selectedLanguage() || item.language === this.selectedLanguage())
       && (!this.selectedFormat() || item.format === this.selectedFormat())
-      && (!this.selectedCinema() || item.cinemaName === this.selectedCinema())));
+      && (!this.selectedCinema() || item.cinemaName === this.selectedCinema())), this.selectedSort()));
   protected readonly showtimesLoading = signal(true);
   protected readonly showtimesError = signal(false);
   protected rating: number | null = null;
