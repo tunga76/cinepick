@@ -1,3 +1,19 @@
+<a class="skip-link" href="#main-content">Ana içeriğe geç</a>
+<header class="site-header">
+  <div class="shell site-header__inner">
+    <a routerLink="/" class="brand-link" (click)="closeMenu()"><span class="brand__mark" aria-hidden="true">C</span><span>CinePick</span></a>
+    <button class="menu-toggle secondary" type="button" [attr.aria-expanded]="menuOpen()" aria-controls="primary-navigation" (click)="menuOpen.update(value => !value)">Menü</button>
+    <nav id="primary-navigation" class="primary-navigation" [class.open]="menuOpen()" aria-label="Ana menü">
+      <a routerLink="/" [routerLinkActiveOptions]="{ exact: true }" routerLinkActive="active" (click)="closeMenu()">Filmler</a>
+      <a routerLink="/cinemas" routerLinkActive="active" (click)="closeMenu()">Sinemalar</a>
+      @if (isAdmin()) { <a routerLink="/admin" routerLinkActive="active" (click)="closeMenu()">Yönetim</a> }
+      @if (user(); as currentUser) {
+        <a routerLink="/profile" routerLinkActive="active" (click)="closeMenu()">{{ currentUser.displayName }}</a>
+        <button type="button" class="nav-action" [disabled]="logoutBusy()" (click)="logout()">{{ logoutBusy() ? 'Çıkılıyor…' : 'Çıkış' }}</button>
+      } @else { <a routerLink="/account" routerLinkActive="active" (click)="closeMenu()">Giriş / Kayıt</a> }
+    </nav>
+  </div>
+</header>
 <router-outlet />
 <footer class="data-source-footer">
   <p><strong>Film verisi:</strong> TMDB</p>

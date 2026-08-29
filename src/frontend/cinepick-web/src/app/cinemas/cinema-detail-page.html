@@ -1,4 +1,4 @@
-<main class="shell detail-shell"><a class="back-link" routerLink="/cinemas">← Sinemalara dön</a>
+<main id="main-content" class="shell detail-shell" tabindex="-1"><a class="back-link" routerLink="/cinemas">← Sinemalara dön</a>
   @if (error()) { <div class="state-card" role="alert"><h1>Sinema bulunamadı</h1></div> }
   @else if (!cinema()) { <div class="state-card" aria-busy="true">Sinema ve seanslar yükleniyor…</div> }
   @else { @let item = cinema()!; <section class="page-heading"><p class="eyebrow">{{ item.city }} · {{ item.district }}</p><h1>{{ item.name }}</h1><p class="hero__copy">{{ item.address }}</p><p>{{ item.auditoriums.length }} salon</p></section>

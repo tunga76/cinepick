@@ -55,6 +55,16 @@
   color: #1a0710;
 }
 
+.site-header { position: sticky; z-index: 100; top: 0; border-bottom: 1px solid rgb(57 52 67 / 80%); background: rgb(17 16 24 / 92%); backdrop-filter: blur(0.8rem); }
+.site-header__inner { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; padding: 0.9rem 0; }
+.site-header .brand-link { font-size: 1.125rem; font-weight: 800; }
+.primary-navigation { display: flex; align-items: center; gap: 0.35rem; }
+.primary-navigation a, .nav-action { padding: 0.65rem 0.8rem; border-radius: 0.65rem; color: #bdb8ca; font: inherit; font-weight: 650; text-decoration: none; }
+.primary-navigation a:hover, .primary-navigation a:focus-visible, .primary-navigation a.active { background: #292534; color: #fff; }
+.primary-navigation a.active { color: #ff8ba0; }
+.nav-action { min-height: auto; border: 1px solid #4b4558; background: transparent; }
+.menu-toggle { display: none; min-height: 2.6rem; padding: 0 0.8rem; }
+
 .hero {
   max-width: 48rem;
   padding-top: clamp(4rem, 12vw, 9rem);
@@ -463,6 +473,11 @@ button.compact { min-height: 2.25rem; padding: 0 0.7rem; }
 }
 
 @media (max-width: 48rem) {
+  .site-header__inner { position: relative; }
+  .menu-toggle { display: block; }
+  .primary-navigation { position: absolute; top: calc(100% - 0.25rem); right: 0; display: none; width: min(18rem, calc(100vw - 2rem)); align-items: stretch; padding: 0.65rem; border: 1px solid #393443; border-radius: 0.9rem; background: #1a1822; box-shadow: 0 1rem 2.5rem rgb(0 0 0 / 35%); }
+  .primary-navigation.open { display: grid; }
+  .primary-navigation a, .nav-action { width: 100%; text-align: left; }
   .upcoming-preview__grid { grid-template-columns: 1fr; }
   .catalog-filters { grid-template-columns: 1fr; }
   .filter-actions { align-items: stretch; }

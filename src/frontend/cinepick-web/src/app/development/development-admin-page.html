@@ -1,4 +1,4 @@
-<main class="shell detail-shell"><a class="back-link" routerLink="/">← Uygulamaya dön</a>
+<main id="main-content" class="shell detail-shell" tabindex="-1"><a class="back-link" routerLink="/">← Uygulamaya dön</a>
   <section class="page-heading"><p class="eyebrow">Admin policy</p><h1>CinePick yönetimi</h1><p class="hero__copy">Bu ekran yalnızca Identity `Admin` rolüne sahip kullanıcılar için açılır; tüm yetki kontrolleri API'de tekrar uygulanır.</p></section>
   <section class="admin-actions"><button type="button" [disabled]="busy()" (click)="syncMovies()">Film kataloğunu eşitle</button><button type="button" [disabled]="busy()" (click)="syncShowtimes()">Seansları eşitle</button></section>
   @if (message()) { <p class="success-message" role="status">{{ message() }}</p> }

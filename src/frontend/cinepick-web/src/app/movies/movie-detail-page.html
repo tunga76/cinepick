@@ -1,4 +1,4 @@
-<main class="shell detail-shell">
+<main id="main-content" class="shell detail-shell" tabindex="-1">
   <a class="back-link" routerLink="/">← Vizyondaki filmlere dön</a>
   @if (hasError()) { <div class="state-card" role="alert"><h1>Film bulunamadı</h1><p>Bu film kaldırılmış veya bağlantı geçersiz olabilir.</p></div> }
   @else if (!movie()) { <div class="state-card" aria-busy="true"><p>Film yükleniyor…</p></div> }

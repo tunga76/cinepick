@@ -1,6 +1,4 @@
-<a class="skip-link" href="#main-content">Ana içeriğe geç</a>
 <main id="main-content" class="shell" tabindex="-1">
-  <header class="brand"><a routerLink="/" class="brand-link"><span class="brand__mark" aria-hidden="true">C</span><span>CinePick</span></a><nav aria-label="Ana menü"><a routerLink="/">Filmler</a><a routerLink="/cinemas">Sinemalar</a><a routerLink="/admin">Yönetim</a><a routerLink="/profile">Profil</a></nav></header>
   <section class="page-heading"><p class="eyebrow">Yakınındaki perdeler</p><h1>Sinemalar</h1><p class="hero__copy">Şehir seç veya yalnızca sen istediğinde konumunu kullanarak yakın sinemaları bul.</p></section>
   <section class="location-panel" aria-label="Sinema konumu">
     <label>Şehir<select [formControl]="cityId"><option value="">Tüm şehirler</option>@for (city of cities(); track city.id) { <option [value]="city.id">{{ city.name }}</option> }</select></label>
