@@ -34,7 +34,8 @@ internal sealed class MovieCatalogSynchronizer(
             var synchronizedAt = timeProvider.GetUtcNow();
             var currentExternalIds = items.Select(item => item.ExternalId).ToHashSet(StringComparer.Ordinal);
             foreach (var staleMovie in existing.Values.Where(movie =>
-                         !currentExternalIds.Contains(movie.ExternalMovieId)
+                         string.Equals(provider.ProviderId, "tmdb", StringComparison.OrdinalIgnoreCase)
+                         && !currentExternalIds.Contains(movie.ExternalMovieId)
                          && (movie.IsNowPlaying || movie.IsUpcoming)))
             {
                 staleMovie.UpdateAvailability(false, false, synchronizedAt);
