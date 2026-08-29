@@ -2,6 +2,13 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
+const tmdbImagePathPattern = /^\/[a-zA-Z0-9._/-]+$/;
+
+export function tmdbPosterUrl(path: string | null, size: 'w342' | 'w500' = 'w500'): string | null {
+  if (!path || !tmdbImagePathPattern.test(path) || path.includes('//')) return null;
+  return `https://image.tmdb.org/t/p/${size}${path}`;
+}
+
 export interface MovieListItem {
   id: string;
   title: string;

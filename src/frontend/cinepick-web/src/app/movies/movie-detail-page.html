@@ -3,7 +3,10 @@
   @if (hasError()) { <div class="state-card" role="alert"><h1>Film bulunamadı</h1><p>Bu film kaldırılmış veya bağlantı geçersiz olabilir.</p></div> }
   @else if (!movie()) { <div class="state-card" aria-busy="true"><p>Film yükleniyor…</p></div> }
   @else { @let item = movie()!;
-    <article class="movie-detail"><div class="poster detail-poster" aria-hidden="true"><span>{{ item.title.charAt(0) }}</span><small>CinePick</small></div>
+    <article class="movie-detail"><div class="poster detail-poster">
+      @if (posterUrl(item); as poster) { <img [src]="poster" [alt]="item.title + ' film posteri'" (error)="posterFailed.set(true)" /> }
+      @else { <span aria-hidden="true">{{ item.title.charAt(0) }}</span><small>CinePick</small> }
+    </div>
       <div><p class="eyebrow">{{ item.isNowPlaying ? 'Şimdi sinemalarda' : 'Yakında' }}</p><h1>{{ item.title }}</h1>
         @if (item.originalTitle !== item.title) { <p class="original-title">{{ item.originalTitle }}</p> }
         <div class="movie-card__meta"><span>{{ item.runtimeMinutes }} dk</span><span>{{ ageLabel(item.ageRating) }}</span><span class="rating">★ {{ item.voteAverage }} / 10</span><span>{{ item.voteCount }} oy</span></div>

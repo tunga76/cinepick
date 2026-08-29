@@ -3,7 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
-import { GenreListItem, MovieCatalogService, MovieListItem } from './movie-catalog.service';
+import { GenreListItem, MovieCatalogService, MovieListItem, tmdbPosterUrl } from './movie-catalog.service';
 import { RecommendationItem, RecommendationService } from '../recommendations/recommendation.service';
 
 @Component({
@@ -21,6 +21,7 @@ export class MovieCatalogPage implements OnInit {
   protected readonly totalCount = signal(0);
   protected readonly isLoadingMovies = signal(true);
   protected readonly movieLoadError = signal(false);
+  protected readonly brokenPosterIds = signal<ReadonlySet<string>>(new Set());
   protected readonly requestText = new FormControl("Yarın 18:00'den sonra Kadıköy'de 100 dakikadan kısa bir film", { nonNullable: true });
   protected readonly recommendations = signal<readonly RecommendationItem[]>([]);
   protected readonly candidateCount = signal(0);
@@ -67,6 +68,12 @@ export class MovieCatalogPage implements OnInit {
 
   protected resetFilters(): void { this.filters.reset(); this.loadMovies(); }
   protected ageLabel(ageRating: number): string { return ageRating === 0 ? 'Genel İzleyici' : `${ageRating}+`; }
+  protected posterUrl(movie: MovieListItem): string | null {
+    return this.brokenPosterIds().has(movie.id) ? null : tmdbPosterUrl(movie.posterPath, 'w342');
+  }
+  protected markPosterBroken(movieId: string): void {
+    this.brokenPosterIds.update(current => new Set([...current, movieId]));
+  }
   protected recommend(): void {
     const text = this.requestText.value.trim();
     if (!text) return;

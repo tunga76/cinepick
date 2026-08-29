@@ -3,7 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
-import { MovieCatalogService, MovieDetail } from './movie-catalog.service';
+import { MovieCatalogService, MovieDetail, tmdbPosterUrl } from './movie-catalog.service';
 import { UserMovieState, UserProfileService } from '../profile/user-profile.service';
 
 @Component({
@@ -23,6 +23,7 @@ export class MovieDetailPage implements OnInit {
   protected readonly isAuthenticated = signal(false);
   protected readonly stateBusy = signal(false);
   protected readonly stateMessage = signal('');
+  protected readonly posterFailed = signal(false);
   protected rating: number | null = null;
 
   ngOnInit(): void {
@@ -42,6 +43,9 @@ export class MovieDetailPage implements OnInit {
   }
 
   protected ageLabel(ageRating: number): string { return ageRating === 0 ? 'Genel İzleyici' : `${ageRating}+`; }
+  protected posterUrl(movie: MovieDetail): string | null {
+    return this.posterFailed() ? null : tmdbPosterUrl(movie.posterPath);
+  }
 
   protected saveState(change: Partial<Pick<UserMovieState, 'isFavorite' | 'isWatched'>> = {}): void {
     const id = this.route.snapshot.paramMap.get('id');
