@@ -21,5 +21,18 @@
         } @else { <p class="profile-invite"><a routerLink="/account">Giriş yap</a> ve filmi favorilerine ekle veya puanla.</p> }
         @if (stateMessage()) { <p class="location-message" role="status">{{ stateMessage() }}</p> }
       </div></article>
+    <section class="movie-showtimes" aria-labelledby="movie-showtimes-title">
+      <div class="section-heading"><div><p class="eyebrow">Önümüzdeki yedi gün</p><h2 id="movie-showtimes-title">Seanslar</h2></div>
+        @if (!showtimesLoading() && !showtimesError()) { <span class="result-count">{{ showtimes().length }} seans</span> }
+      </div>
+      @if (showtimesLoading()) { <div class="state-card" aria-busy="true">Seanslar yükleniyor…</div> }
+      @else if (showtimesError()) { <div class="state-card" role="alert">Seanslar şu anda yüklenemedi.</div> }
+      @else if (showtimes().length === 0) { <div class="state-card">Bu film için yaklaşan seans bulunamadı.</div> }
+      @else { <div class="showtime-list">@for (showtime of showtimes(); track showtime.id) {
+        <article class="showtime-card"><div><a [routerLink]="['/cinemas', showtime.cinemaId]"><h3>{{ showtime.cinemaName }}</h3></a><p>{{ showtime.auditoriumName }} · {{ showtime.language.toUpperCase() }} · {{ showtime.format }}</p></div>
+          <div><strong>{{ istanbulTime(showtime.startsAt) }}</strong><p>{{ price(showtime) }}</p></div>
+          <a class="ticket-link" [href]="showtime.ticketUrl" target="_blank" rel="noopener noreferrer">Bilet bağlantısı</a></article>
+      }</div> }
+    </section>
   }
 </main>

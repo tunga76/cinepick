@@ -35,4 +35,9 @@ export class CinemaCatalogService {
       params: new HttpParams().set('cinemaId', cinemaId),
     });
   }
+  getMovieShowtimes(movieId: string) {
+    return this.http.get<ShowtimeListItem[]>('/api/showtimes', {
+      params: new HttpParams().set('movieId', movieId),
+    });
+  }
 }

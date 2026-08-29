@@ -5,6 +5,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { MovieCatalogService, MovieDetail, tmdbPosterUrl } from './movie-catalog.service';
 import { UserMovieState, UserProfileService } from '../profile/user-profile.service';
+import { CinemaCatalogService, ShowtimeListItem } from '../cinemas/cinema-catalog.service';
 
 @Component({
   selector: 'app-movie-detail-page',
@@ -17,6 +18,7 @@ export class MovieDetailPage implements OnInit {
   private readonly catalog = inject(MovieCatalogService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly profile = inject(UserProfileService);
+  private readonly cinemas = inject(CinemaCatalogService);
   protected readonly movie = signal<MovieDetail | null>(null);
   protected readonly hasError = signal(false);
   protected readonly movieState = signal<UserMovieState | null>(null);
@@ -24,6 +26,9 @@ export class MovieDetailPage implements OnInit {
   protected readonly stateBusy = signal(false);
   protected readonly stateMessage = signal('');
   protected readonly posterFailed = signal(false);
+  protected readonly showtimes = signal<readonly ShowtimeListItem[]>([]);
+  protected readonly showtimesLoading = signal(true);
+  protected readonly showtimesError = signal(false);
   protected rating: number | null = null;
 
   ngOnInit(): void {
@@ -32,6 +37,10 @@ export class MovieDetailPage implements OnInit {
     this.catalog.getById(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (movie) => this.movie.set(movie),
       error: () => this.hasError.set(true),
+    });
+    this.cinemas.getMovieShowtimes(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: showtimes => { this.showtimes.set(showtimes); this.showtimesLoading.set(false); },
+      error: () => { this.showtimesError.set(true); this.showtimesLoading.set(false); },
     });
     this.profile.getMovieState(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: state => { this.isAuthenticated.set(true); this.setState(state); },
@@ -45,6 +54,17 @@ export class MovieDetailPage implements OnInit {
   protected ageLabel(ageRating: number): string { return ageRating === 0 ? 'Genel İzleyici' : `${ageRating}+`; }
   protected posterUrl(movie: MovieDetail): string | null {
     return this.posterFailed() ? null : tmdbPosterUrl(movie.posterPath);
+  }
+  protected istanbulTime(value: string): string {
+    return new Intl.DateTimeFormat('tr-TR', {
+      timeZone: 'Europe/Istanbul', weekday: 'short', day: 'numeric', month: 'short',
+      hour: '2-digit', minute: '2-digit',
+    }).format(new Date(value));
+  }
+  protected price(showtime: ShowtimeListItem): string {
+    return new Intl.NumberFormat('tr-TR', {
+      style: 'currency', currency: showtime.currency,
+    }).format(showtime.price);
   }
 
   protected saveState(change: Partial<Pick<UserMovieState, 'isFavorite' | 'isWatched'>> = {}): void {
