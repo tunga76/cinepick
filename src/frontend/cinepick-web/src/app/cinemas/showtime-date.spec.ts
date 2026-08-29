@@ -24,11 +24,13 @@ describe('showtime date helpers', () => {
 
   it('returns distinct facets only for the selected Istanbul date', () => {
     const items = [
-      { ...showtime('1', '2026-08-29T18:00:00Z'), language: 'tr', format: '2D' },
-      { ...showtime('2', '2026-08-29T19:00:00Z'), language: 'en', format: 'IMAX' },
-      { ...showtime('3', '2026-08-29T22:00:00Z'), language: 'de', format: '3D' },
+      { ...showtime('1', '2026-08-29T18:00:00Z'), language: 'tr', format: '2D', cinemaName: 'Moda Sineması' },
+      { ...showtime('2', '2026-08-29T19:00:00Z'), language: 'en', format: 'IMAX', cinemaName: 'Atlas Sineması' },
+      { ...showtime('3', '2026-08-29T22:00:00Z'), language: 'de', format: '3D', cinemaName: 'Başka Sinema' },
     ];
     expect(showtimeFacetOptions(items, '2026-08-29', 'language')).toEqual(['en', 'tr']);
     expect(showtimeFacetOptions(items, '2026-08-30', 'format')).toEqual(['3D']);
+    expect(showtimeFacetOptions(items, '2026-08-29', 'cinemaName'))
+      .toEqual(['Atlas Sineması', 'Moda Sineması']);
   });
 });

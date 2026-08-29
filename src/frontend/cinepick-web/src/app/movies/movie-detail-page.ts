@@ -31,13 +31,16 @@ export class MovieDetailPage implements OnInit {
   protected readonly selectedDate = signal('');
   protected readonly selectedLanguage = signal('');
   protected readonly selectedFormat = signal('');
+  protected readonly selectedCinema = signal('');
   protected readonly dateOptions = computed(() => showtimeDateOptions(this.showtimes()));
   protected readonly languageOptions = computed(() => showtimeFacetOptions(this.showtimes(), this.selectedDate(), 'language'));
   protected readonly formatOptions = computed(() => showtimeFacetOptions(this.showtimes(), this.selectedDate(), 'format'));
+  protected readonly cinemaOptions = computed(() => showtimeFacetOptions(this.showtimes(), this.selectedDate(), 'cinemaName'));
   protected readonly visibleShowtimes = computed(() => this.showtimes()
     .filter(item => (!this.selectedDate() || istanbulDateKey(item.startsAt) === this.selectedDate())
       && (!this.selectedLanguage() || item.language === this.selectedLanguage())
-      && (!this.selectedFormat() || item.format === this.selectedFormat())));
+      && (!this.selectedFormat() || item.format === this.selectedFormat())
+      && (!this.selectedCinema() || item.cinemaName === this.selectedCinema())));
   protected readonly showtimesLoading = signal(true);
   protected readonly showtimesError = signal(false);
   protected rating: number | null = null;
@@ -83,6 +86,7 @@ export class MovieDetailPage implements OnInit {
   }
   protected selectDate(date: string): void {
     this.selectedDate.set(date); this.selectedLanguage.set(''); this.selectedFormat.set('');
+    this.selectedCinema.set('');
   }
 
   protected saveState(change: Partial<Pick<UserMovieState, 'isFavorite' | 'isWatched'>> = {}): void {

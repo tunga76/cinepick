@@ -24,7 +24,7 @@ export function showtimeDateOptions(showtimes: readonly ShowtimeListItem[]): Sho
 }
 
 export function showtimeFacetOptions(
-  showtimes: readonly ShowtimeListItem[], dateKey: string, field: 'language' | 'format',
+  showtimes: readonly ShowtimeListItem[], dateKey: string, field: 'language' | 'format' | 'cinemaName',
 ): string[] {
   return [...new Set(showtimes
     .filter(item => !dateKey || istanbulDateKey(item.startsAt) === dateKey)
