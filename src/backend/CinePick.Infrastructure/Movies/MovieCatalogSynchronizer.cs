@@ -3,14 +3,21 @@ using CinePick.Domain.ExternalProviders;
 using CinePick.Domain.Movies;
 using CinePick.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace CinePick.Infrastructure.Movies;
 
 internal sealed class MovieCatalogSynchronizer(
     IDbContextFactory<CinePickDbContext> dbContextFactory,
     IMovieMetadataProvider provider,
-    TimeProvider timeProvider) : IMovieCatalogSynchronizer
+    TimeProvider timeProvider,
+    ILogger<MovieCatalogSynchronizer> logger) : IMovieCatalogSynchronizer
 {
+    private static readonly Action<ILogger, string, string, Exception?> LogUnmappedGenre =
+        LoggerMessage.Define<string, string>(LogLevel.Warning,
+            new EventId(2201, "MovieCatalogUnmappedGenre"),
+            "Movie catalog provider {ProviderId} returned unmapped genre {GenreSlug}; the genre link was skipped.");
+
     public async Task<MovieCatalogSyncResult> SynchronizeAsync(CancellationToken cancellationToken)
     {
         var startedAt = timeProvider.GetUtcNow();
@@ -68,7 +75,8 @@ internal sealed class MovieCatalogSynchronizer(
                 {
                     if (!genres.TryGetValue(slug, out var genre))
                     {
-                        throw new InvalidOperationException($"Provider genre is not mapped: {slug}");
+                        LogUnmappedGenre(logger, provider.ProviderId, slug, null);
+                        continue;
                     }
 
                     movie.MovieGenres.Add(new MovieGenre(movie.Id, genre.Id));
