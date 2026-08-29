@@ -42,3 +42,12 @@ export function sortShowtimes(
     return timeComparison || left.id.localeCompare(right.id);
   });
 }
+
+export function showtimePriceOptions(
+  showtimes: readonly ShowtimeListItem[], dateKey: string,
+): number[] {
+  return [...new Set(showtimes
+    .filter(item => !dateKey || istanbulDateKey(item.startsAt) === dateKey)
+    .map(item => item.price))]
+    .sort((left, right) => left - right);
+}

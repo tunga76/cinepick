@@ -6,7 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { MovieCatalogService, MovieDetail, tmdbPosterUrl } from './movie-catalog.service';
 import { UserMovieState, UserProfileService } from '../profile/user-profile.service';
 import { CinemaCatalogService, ShowtimeListItem } from '../cinemas/cinema-catalog.service';
-import { istanbulDateKey, showtimeDateOptions, showtimeFacetOptions, ShowtimeSort, sortShowtimes } from '../cinemas/showtime-date';
+import { istanbulDateKey, showtimeDateOptions, showtimeFacetOptions, showtimePriceOptions, ShowtimeSort, sortShowtimes } from '../cinemas/showtime-date';
 
 @Component({
   selector: 'app-movie-detail-page',
@@ -33,15 +33,18 @@ export class MovieDetailPage implements OnInit {
   protected readonly selectedFormat = signal('');
   protected readonly selectedCinema = signal('');
   protected readonly selectedSort = signal<ShowtimeSort>('time');
+  protected readonly maximumPrice = signal<number | null>(null);
   protected readonly dateOptions = computed(() => showtimeDateOptions(this.showtimes()));
   protected readonly languageOptions = computed(() => showtimeFacetOptions(this.showtimes(), this.selectedDate(), 'language'));
   protected readonly formatOptions = computed(() => showtimeFacetOptions(this.showtimes(), this.selectedDate(), 'format'));
   protected readonly cinemaOptions = computed(() => showtimeFacetOptions(this.showtimes(), this.selectedDate(), 'cinemaName'));
+  protected readonly priceOptions = computed(() => showtimePriceOptions(this.showtimes(), this.selectedDate()));
   protected readonly visibleShowtimes = computed(() => sortShowtimes(this.showtimes()
     .filter(item => (!this.selectedDate() || istanbulDateKey(item.startsAt) === this.selectedDate())
       && (!this.selectedLanguage() || item.language === this.selectedLanguage())
       && (!this.selectedFormat() || item.format === this.selectedFormat())
-      && (!this.selectedCinema() || item.cinemaName === this.selectedCinema())), this.selectedSort()));
+      && (!this.selectedCinema() || item.cinemaName === this.selectedCinema())
+      && (this.maximumPrice() === null || item.price <= this.maximumPrice()!)), this.selectedSort()));
   protected readonly showtimesLoading = signal(true);
   protected readonly showtimesError = signal(false);
   protected rating: number | null = null;
@@ -85,9 +88,14 @@ export class MovieDetailPage implements OnInit {
       style: 'currency', currency: showtime.currency,
     }).format(showtime.price);
   }
+  protected priceLimit(value: number): string {
+    return new Intl.NumberFormat('tr-TR', {
+      style: 'currency', currency: 'TRY', maximumFractionDigits: 0,
+    }).format(value);
+  }
   protected selectDate(date: string): void {
     this.selectedDate.set(date); this.selectedLanguage.set(''); this.selectedFormat.set('');
-    this.selectedCinema.set('');
+    this.selectedCinema.set(''); this.maximumPrice.set(null);
   }
 
   protected saveState(change: Partial<Pick<UserMovieState, 'isFavorite' | 'isWatched'>> = {}): void {

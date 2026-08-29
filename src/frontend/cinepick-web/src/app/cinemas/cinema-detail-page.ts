@@ -4,7 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { CinemaCatalogService, CinemaDetail, ShowtimeListItem } from './cinema-catalog.service';
-import { istanbulDateKey, showtimeDateOptions, showtimeFacetOptions, ShowtimeSort, sortShowtimes } from './showtime-date';
+import { istanbulDateKey, showtimeDateOptions, showtimeFacetOptions, showtimePriceOptions, ShowtimeSort, sortShowtimes } from './showtime-date';
 
 @Component({ selector: 'app-cinema-detail-page', imports: [RouterLink, FormsModule], templateUrl: './cinema-detail-page.html', changeDetection: ChangeDetectionStrategy.OnPush })
 export class CinemaDetailPage implements OnInit {
@@ -17,13 +17,16 @@ export class CinemaDetailPage implements OnInit {
   protected readonly selectedLanguage = signal('');
   protected readonly selectedFormat = signal('');
   protected readonly selectedSort = signal<ShowtimeSort>('time');
+  protected readonly maximumPrice = signal<number | null>(null);
   protected readonly dateOptions = computed(() => showtimeDateOptions(this.showtimes()));
   protected readonly languageOptions = computed(() => showtimeFacetOptions(this.showtimes(), this.selectedDate(), 'language'));
   protected readonly formatOptions = computed(() => showtimeFacetOptions(this.showtimes(), this.selectedDate(), 'format'));
+  protected readonly priceOptions = computed(() => showtimePriceOptions(this.showtimes(), this.selectedDate()));
   protected readonly visibleShowtimes = computed(() => sortShowtimes(this.showtimes()
     .filter(item => (!this.selectedDate() || istanbulDateKey(item.startsAt) === this.selectedDate())
       && (!this.selectedLanguage() || item.language === this.selectedLanguage())
-      && (!this.selectedFormat() || item.format === this.selectedFormat())), this.selectedSort()));
+      && (!this.selectedFormat() || item.format === this.selectedFormat())
+      && (this.maximumPrice() === null || item.price <= this.maximumPrice()!)), this.selectedSort()));
   protected readonly error = signal(false);
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -36,9 +39,13 @@ export class CinemaDetailPage implements OnInit {
   }
   protected selectDate(date: string): void {
     this.selectedDate.set(date); this.selectedLanguage.set(''); this.selectedFormat.set('');
+    this.maximumPrice.set(null);
   }
   protected istanbulTime(value: string): string {
     return new Intl.DateTimeFormat('tr-TR', { timeZone: 'Europe/Istanbul', weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(value));
   }
   protected price(showtime: ShowtimeListItem): string { return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: showtime.currency }).format(showtime.price); }
+  protected priceLimit(value: number): string {
+    return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(value);
+  }
 }
