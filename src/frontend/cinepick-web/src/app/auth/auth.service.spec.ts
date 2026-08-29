@@ -35,4 +35,22 @@ describe('AuthService', () => {
     logout.flush(null);
     expect(service.currentUser()).toBeNull();
   });
+
+  it('does not let a stale anonymous refresh overwrite a completed login', () => {
+    const user: AuthenticatedUser = {
+      id: '10000000-0000-0000-0000-000000000001',
+      email: 'admin@example.test', displayName: 'Yönetici', roles: ['Admin'],
+    };
+
+    service.refresh().subscribe();
+    const staleRefresh = http.expectOne('/api/auth/me');
+
+    service.login({ email: user.email, password: 'Strong!Pass1' }).subscribe();
+    http.expectOne('/api/auth/csrf').flush({ token: 'login-token' });
+    http.expectOne('/api/auth/login').flush(user);
+    expect(service.currentUser()).toEqual(user);
+
+    staleRefresh.flush(null, { status: 401, statusText: 'Unauthorized' });
+    expect(service.currentUser()).toEqual(user);
+  });
 });

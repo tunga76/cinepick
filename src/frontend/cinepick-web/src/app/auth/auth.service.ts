@@ -17,15 +17,17 @@ export interface LoginRequest { email: string; password: string; }
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly userState = signal<AuthenticatedUser | null>(null);
+  private stateRevision = 0;
   readonly currentUser = this.userState.asReadonly();
 
   refresh(): Observable<AuthenticatedUser | null> {
+    const requestRevision = ++this.stateRevision;
     return this.http.get<AuthenticatedUser>('/api/auth/me').pipe(
-      tap(user => this.userState.set(user)),
+      tap(user => this.updateFromRefresh(requestRevision, user)),
       map(user => user as AuthenticatedUser | null),
       catchError((error: HttpErrorResponse) => {
         if (error.status === 401) {
-          this.userState.set(null);
+          this.updateFromRefresh(requestRevision, null);
           return of(null);
         }
         return throwError(() => error);
@@ -36,22 +38,31 @@ export class AuthService {
   register(request: RegisterRequest): Observable<AuthenticatedUser> {
     return this.withCsrf(headers => this.http.post<AuthenticatedUser>(
       '/api/auth/register', request, { headers })).pipe(
-        tap(user => this.userState.set(user)),
+        tap(user => this.updateFromMutation(user)),
       );
   }
 
   login(request: LoginRequest): Observable<AuthenticatedUser> {
     return this.withCsrf(headers => this.http.post<AuthenticatedUser>(
       '/api/auth/login', request, { headers })).pipe(
-        tap(user => this.userState.set(user)),
+        tap(user => this.updateFromMutation(user)),
       );
   }
 
   logout(): Observable<void> {
     return this.withCsrf(headers => this.http.post<void>(
       '/api/auth/logout', null, { headers })).pipe(
-        tap(() => this.userState.set(null)),
+        tap(() => this.updateFromMutation(null)),
       );
+  }
+
+  private updateFromRefresh(revision: number, user: AuthenticatedUser | null): void {
+    if (revision === this.stateRevision) this.userState.set(user);
+  }
+
+  private updateFromMutation(user: AuthenticatedUser | null): void {
+    this.stateRevision++;
+    this.userState.set(user);
   }
 
   private withCsrf<T>(operation: (headers: HttpHeaders) => Observable<T>): Observable<T> {
