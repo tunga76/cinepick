@@ -9,13 +9,18 @@
       <button type="submit" [disabled]="recommendationLoading() || !requestText.value.trim()">{{ recommendationLoading() ? 'Adaylar değerlendiriliyor…' : 'Önerileri bul' }}</button>
       <small>Şimdilik deterministik mock parser kullanılıyor; zorunlu filtreler AI dışında uygulanır.</small>
     </form>
-    @if (recommendationError()) { <div class="recommendation-state" role="alert">Öneriler şu anda oluşturulamadı.</div> }
+    @if (recommendationLoading()) { <div class="recommendation-state" role="status">İsteğine uygun seanslar değerlendiriliyor…</div> }
+    @else if (recommendationError()) {
+      <div class="recommendation-state"><p role="alert">Öneriler şu anda oluşturulamadı. İsteğini değiştirebilir veya tekrar deneyebilirsin.</p>
+        <button type="button" [disabled]="!requestText.value.trim()" (click)="recommend()">Tekrar dene</button>
+      </div>
+    }
     @else if (!recommendationLoading() && candidateCount() > 0) {
       <section class="recommendation-results" aria-labelledby="recommendation-title"><div class="section-heading"><h2 id="recommendation-title">Sana uygun seçenekler</h2><span class="result-count">{{ candidateCount() }} gerçek adaydan</span></div>
         <div class="recommendation-grid">@for (item of recommendations(); track item.showtimeId) { <article class="recommendation-card"><div class="score">{{ item.score }}</div><p class="eyebrow">{{ item.districtName }} · {{ item.format }}</p><a [routerLink]="['/movies', item.movieId]"><h3>{{ item.movieTitle }}</h3></a><p>{{ item.cinemaName }} · {{ istanbulTime(item.startsAt) }}</p><p class="reason">{{ item.reason }}</p><div class="recommendation-footer"><strong>{{ price(item) }}</strong><a class="ticket-link" [href]="item.ticketUrl" target="_blank" rel="noopener noreferrer">Bilet bağlantısı</a></div></article> }</div>
       </section>
     } @else if (hasRequestedRecommendation() && !recommendationLoading() && recommendations().length === 0) {
-      <div class="recommendation-state">İsteğine uyan gerçek bir seans bulunamadı. Zaman veya konum koşulunu genişletebilirsin.</div>
+      <div class="recommendation-state" role="status">İsteğine uyan gerçek bir seans bulunamadı. Zaman veya konum koşulunu genişletebilirsin.</div>
     }
   </section>
   <section class="upcoming-preview" aria-labelledby="upcoming-preview-title">

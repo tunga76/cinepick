@@ -119,6 +119,7 @@ export class MovieCatalogPage implements OnInit {
     this.brokenPosterIds.update(current => new Set([...current, movieId]));
   }
   protected recommend(): void {
+    if (this.recommendationLoading()) return;
     const text = this.requestText.value.trim();
     if (!text) return;
     this.hasRequestedRecommendation.set(true);
