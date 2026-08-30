@@ -16,6 +16,7 @@ export class MovieCatalogPage implements OnInit {
   private readonly movieCatalog = inject(MovieCatalogService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly recommendationService = inject(RecommendationService);
+  private catalogRequestVersion = 0;
   protected readonly movies = signal<readonly MovieListItem[]>([]);
   protected readonly upcomingPreview = signal<readonly MovieListItem[]>([]);
   protected readonly genres = signal<readonly GenreListItem[]>([]);
@@ -42,17 +43,22 @@ export class MovieCatalogPage implements OnInit {
   });
 
   ngOnInit(): void {
+    const version = ++this.catalogRequestVersion;
     forkJoin({ movies: this.movieCatalog.getNowPlaying({}, 1, this.pageSize), genres: this.movieCatalog.getGenres() })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: ({ movies, genres }) => {
+          this.genres.set(genres);
+          if (version !== this.catalogRequestVersion) return;
           this.movies.set(movies.items);
           this.totalCount.set(movies.totalCount);
           this.page.set(movies.page);
-          this.genres.set(genres);
           this.isLoadingMovies.set(false);
         },
-        error: () => { this.movieLoadError.set(true); this.isLoadingMovies.set(false); },
+        error: () => {
+          if (version !== this.catalogRequestVersion) return;
+          this.movieLoadError.set(true); this.isLoadingMovies.set(false);
+        },
       });
 
     this.movieCatalog.getUpcoming({}, 1, 4)
@@ -70,6 +76,7 @@ export class MovieCatalogPage implements OnInit {
   }
 
   protected loadMovies(requestedPage = 1): void {
+    const version = ++this.catalogRequestVersion;
     const values = this.filters.getRawValue();
     this.isLoadingMovies.set(true);
     this.movieLoadError.set(false);
@@ -82,12 +89,16 @@ export class MovieCatalogPage implements OnInit {
       maximumRuntimeMinutes: values.maximumRuntimeMinutes ? Number(values.maximumRuntimeMinutes) : undefined,
     }, requestedPage, this.pageSize).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
+        if (version !== this.catalogRequestVersion) return;
         this.movies.set(response.items);
         this.totalCount.set(response.totalCount);
         this.page.set(response.page);
         this.isLoadingMovies.set(false);
       },
-      error: () => { this.movieLoadError.set(true); this.isLoadingMovies.set(false); },
+      error: () => {
+        if (version !== this.catalogRequestVersion) return;
+        this.movieLoadError.set(true); this.isLoadingMovies.set(false);
+      },
     });
   }
 

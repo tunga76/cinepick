@@ -93,6 +93,8 @@ states, and offer an explicit retry after failure without clearing the user's te
 Catalog and movie-detail poster failures show manual retry controls. Retry recreates
 failed image elements without reloading the page; missing poster metadata still
 uses a placeholder. This does not bypass network restrictions on the image host.
+Catalog results, pagination and error/loading state are updated only by the latest
+catalog request, so delayed responses cannot overwrite newer filters or tabs.
 
 Movie metadata, showtime, and AI modes default to `Mock`. Empty TMDb or AI keys do not prevent startup. To enable TMDb movie metadata, set `MovieProviders__Mode=TMDb` and store the application read access token in `TMDb__ReadAccessToken`; language, region, and page limits default to `tr-TR`, `TR`, and `2`. This affects movie metadata only—showtimes remain on their separately configured provider. To enable the OpenAI Responses ranker, set `AI__Mode=OpenAI` and `AI__ApiKey`; `AI__Model` and `AI__Endpoint` are optional.
 
