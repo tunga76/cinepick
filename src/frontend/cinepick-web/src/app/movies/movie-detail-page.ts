@@ -47,7 +47,7 @@ export class MovieDetailPage implements OnInit {
       && (!this.selectedCinema() || item.cinemaName === this.selectedCinema())
       && (this.maximumPrice() === null || item.price <= this.maximumPrice()!)
       && matchesShowtimePeriod(item.startsAt, this.selectedPeriod())), this.selectedSort()));
-  protected readonly showtimesLoading = signal(true);
+  protected readonly showtimesLoading = signal(false);
   protected readonly showtimesError = signal(false);
   protected rating: number | null = null;
 
@@ -58,14 +58,7 @@ export class MovieDetailPage implements OnInit {
       next: (movie) => this.movie.set(movie),
       error: () => this.hasError.set(true),
     });
-    this.cinemas.getMovieShowtimes(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: showtimes => {
-        this.showtimes.set(showtimes);
-        this.selectedDate.set(showtimeDateOptions(showtimes)[0]?.key ?? '');
-        this.showtimesLoading.set(false);
-      },
-      error: () => { this.showtimesError.set(true); this.showtimesLoading.set(false); },
-    });
+    this.loadShowtimes();
     this.profile.getMovieState(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: state => { this.isAuthenticated.set(true); this.setState(state); },
       error: (error: HttpErrorResponse) => {
@@ -76,6 +69,20 @@ export class MovieDetailPage implements OnInit {
   }
 
   protected ageLabel(ageRating: number): string { return ageRating === 0 ? 'Genel İzleyici' : `${ageRating}+`; }
+  protected loadShowtimes(): void {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (!id || this.showtimesLoading()) return;
+    this.showtimesLoading.set(true);
+    this.showtimesError.set(false);
+    this.cinemas.getMovieShowtimes(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: showtimes => {
+        this.showtimes.set(showtimes);
+        this.selectDate(showtimeDateOptions(showtimes)[0]?.key ?? '');
+        this.showtimesLoading.set(false);
+      },
+      error: () => { this.showtimesError.set(true); this.showtimesLoading.set(false); },
+    });
+  }
   protected posterUrl(movie: MovieDetail): string | null {
     return this.posterFailed() ? null : tmdbPosterUrl(movie.posterPath);
   }
