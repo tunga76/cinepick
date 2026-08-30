@@ -42,6 +42,7 @@ docker compose up --build
 
 - The user authorizes committing completed project updates and pushing them to GitHub after affected tests and builds pass, without asking for confirmation for each update.
 - This authorization does not include Azure deployment. Ask for explicit approval before deploying to Azure.
+- After each GitHub update, provide PowerShell Azure Container Apps update commands for affected images using the pushed commit SHA. Tell the user to wait for successful image publication before running them; do not execute deployment without approval.
 - Do not include unrelated user changes or secrets in commits; tool permission checks still apply.
 
 ## External service and AI safety

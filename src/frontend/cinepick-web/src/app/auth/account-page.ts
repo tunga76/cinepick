@@ -29,16 +29,19 @@ export class AccountPage {
   });
 
   protected show(mode: 'login' | 'register'): void {
+    if (this.busy()) return;
     this.mode.set(mode);
     this.error.set('');
   }
 
   protected login(): void {
+    if (this.busy()) return;
     if (this.loginForm.invalid) { this.loginForm.markAllAsTouched(); return; }
     this.submit(this.auth.login(this.loginForm.getRawValue()));
   }
 
   protected register(): void {
+    if (this.busy()) return;
     if (this.registerForm.invalid) { this.registerForm.markAllAsTouched(); return; }
     this.submit(this.auth.register(this.registerForm.getRawValue()));
   }

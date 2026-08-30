@@ -4,8 +4,8 @@
     <p class="eyebrow">CinePick hesabı</p>
     <h1 id="account-title">{{ mode() === 'login' ? 'Tekrar hoş geldin' : 'Hesabını oluştur' }}</h1>
     <div class="auth-tabs" role="tablist" aria-label="Hesap işlemi">
-      <button type="button" role="tab" [attr.aria-selected]="mode() === 'login'" [class.secondary]="mode() !== 'login'" (click)="show('login')">Giriş yap</button>
-      <button type="button" role="tab" [attr.aria-selected]="mode() === 'register'" [class.secondary]="mode() !== 'register'" (click)="show('register')">Kayıt ol</button>
+      <button type="button" role="tab" [disabled]="busy()" [attr.aria-selected]="mode() === 'login'" [class.secondary]="mode() !== 'login'" (click)="show('login')">Giriş yap</button>
+      <button type="button" role="tab" [disabled]="busy()" [attr.aria-selected]="mode() === 'register'" [class.secondary]="mode() !== 'register'" (click)="show('register')">Kayıt ol</button>
     </div>
     @if (error()) { <p class="form-error" role="alert">{{ error() }}</p> }
     @if (mode() === 'login') {
