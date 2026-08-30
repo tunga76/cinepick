@@ -83,6 +83,8 @@ request is pending, and allow retry after a failed request.
 Profile data has explicit loading and retryable error states. Preferences and
 empty-list messages appear only after all profile data loads successfully, so a
 failed fetch cannot be mistaken for empty saved preferences.
+Preference saves lock the form while pending to prevent duplicate requests;
+failed saves retain entered values and re-enable the form for retry.
 
 Movie metadata, showtime, and AI modes default to `Mock`. Empty TMDb or AI keys do not prevent startup. To enable TMDb movie metadata, set `MovieProviders__Mode=TMDb` and store the application read access token in `TMDb__ReadAccessToken`; language, region, and page limits default to `tr-TR`, `TR`, and `2`. This affects movie metadata only—showtimes remain on their separately configured provider. To enable the OpenAI Responses ranker, set `AI__Mode=OpenAI` and `AI__ApiKey`; `AI__Model` and `AI__Endpoint` are optional.
 

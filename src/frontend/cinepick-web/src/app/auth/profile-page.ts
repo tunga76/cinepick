@@ -19,6 +19,7 @@ export class ProfilePage implements OnInit {
   protected readonly movieStates = signal<readonly UserMovieState[]>([]);
   protected readonly history = signal<readonly RecommendationHistoryItem[]>([]);
   protected readonly preferenceMessage = signal('');
+  protected readonly savingPreferences = signal(false);
   protected readonly preferences = new FormGroup({
     preferredGenreSlug: new FormControl('', { nonNullable: true }),
     preferredLanguage: new FormControl('', { nonNullable: true }),
@@ -54,18 +55,26 @@ export class ProfilePage implements OnInit {
   }
 
   protected savePreferences(): void {
-    if (this.loading() || this.loadError()) return;
+    if (this.loading() || this.loadError() || this.savingPreferences()) return;
     this.preferenceMessage.set('');
     const value = this.preferences.getRawValue();
+    this.savingPreferences.set(true);
+    this.preferences.disable();
     this.profileService.updatePreferences({
       preferredGenreSlug: value.preferredGenreSlug || null,
       preferredLanguage: value.preferredLanguage || null,
       maximumRuntimeMinutes: value.maximumRuntimeMinutes,
       maximumDistanceKilometers: value.maximumDistanceKilometers,
     }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => this.preferenceMessage.set('Tercihlerin kaydedildi.'),
-      error: () => this.preferenceMessage.set('Tercihler kaydedilemedi.'),
+      next: () => this.finishPreferenceSave('Tercihlerin kaydedildi.'),
+      error: () => this.finishPreferenceSave('Tercihler kaydedilemedi. Tekrar deneyebilirsin.'),
     });
+  }
+
+  private finishPreferenceSave(message: string): void {
+    this.preferences.enable();
+    this.savingPreferences.set(false);
+    this.preferenceMessage.set(message);
   }
 
   protected istanbulTime(value: string): string {

@@ -16,7 +16,7 @@
       <label>Dil<input formControlName="preferredLanguage" placeholder="tr" maxlength="10" /></label>
       <label>En fazla süre<input type="number" formControlName="maximumRuntimeMinutes" min="1" max="600" /></label>
       <label>En fazla mesafe (km)<input type="number" formControlName="maximumDistanceKilometers" min="1" max="100" /></label>
-      <button type="submit">Tercihleri kaydet</button>
+      <button type="submit" [disabled]="savingPreferences()">{{ savingPreferences() ? 'Kaydediliyor…' : 'Tercihleri kaydet' }}</button>
     </form>
     @if (preferenceMessage()) { <p class="location-message" role="status">{{ preferenceMessage() }}</p> }
   </section>
