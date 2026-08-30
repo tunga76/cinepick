@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { AuthService } from './auth.service';
 import { RecommendationHistoryItem, UserMovieState, UserProfileService } from '../profile/user-profile.service';
@@ -23,8 +23,9 @@ export class ProfilePage implements OnInit {
   protected readonly preferences = new FormGroup({
     preferredGenreSlug: new FormControl('', { nonNullable: true }),
     preferredLanguage: new FormControl('', { nonNullable: true }),
-    maximumRuntimeMinutes: new FormControl<number | null>(null),
-    maximumDistanceKilometers: new FormControl<number | null>(null),
+    maximumRuntimeMinutes: new FormControl<number | null>(null, [Validators.min(1), Validators.max(600),
+      control => control.value === null || Number.isInteger(control.value) ? null : { integer: true }]),
+    maximumDistanceKilometers: new FormControl<number | null>(null, [Validators.min(Number.MIN_VALUE), Validators.max(100)]),
   });
 
   ngOnInit(): void {
@@ -57,6 +58,11 @@ export class ProfilePage implements OnInit {
   protected savePreferences(): void {
     if (this.loading() || this.loadError() || this.savingPreferences()) return;
     this.preferenceMessage.set('');
+    if (this.preferences.invalid) {
+      this.preferences.markAllAsTouched();
+      this.preferenceMessage.set('Lütfen işaretli alanları düzelt.');
+      return;
+    }
     const value = this.preferences.getRawValue();
     this.savingPreferences.set(true);
     this.preferences.disable();
@@ -75,6 +81,11 @@ export class ProfilePage implements OnInit {
     this.preferences.enable();
     this.savingPreferences.set(false);
     this.preferenceMessage.set(message);
+  }
+
+  protected invalidPreference(field: 'maximumRuntimeMinutes' | 'maximumDistanceKilometers'): boolean {
+    const control = this.preferences.controls[field];
+    return control.touched && control.invalid;
   }
 
   protected istanbulTime(value: string): string {

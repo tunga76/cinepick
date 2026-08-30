@@ -6,6 +6,57 @@ import { describe, expect, it } from 'vitest';
 import { ProfilePage } from './profile-page';
 
 describe('ProfilePage loading', () => {
+  it('rejects invalid numeric preferences without requests and accepts fractions and empty values', async () => {
+    await TestBed.configureTestingModule({
+      imports: [ProfilePage],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(ProfilePage);
+    const http = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+    http.expectOne('/api/users/me/movie-states').flush([]);
+    http.expectOne('/api/users/me/recommendation-history').flush([]);
+    http.expectOne('/api/users/me/preferences').flush({ preferredGenreSlug: null,
+      preferredLanguage: null, maximumRuntimeMinutes: null, maximumDistanceKilometers: null });
+    fixture.detectChanges();
+    const set = (field: string, value: string) => {
+      const input: HTMLInputElement = fixture.nativeElement.querySelector(`[formControlName="${field}"]`);
+      input.value = value;
+      input.dispatchEvent(new Event('input'));
+      return input;
+    };
+    const submit = () => {
+      fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true }));
+      fixture.detectChanges();
+    };
+    for (const [field, values] of [
+      ['maximumRuntimeMinutes', ['0', '-1', '601', '90.5']],
+      ['maximumDistanceKilometers', ['0', '-1', '101']],
+    ] as const) {
+      for (const value of values) {
+        const input = set(field, value);
+        submit();
+        expect(input.getAttribute('aria-invalid')).toBe('true');
+        expect(fixture.nativeElement.textContent).toContain('işaretli alanları düzelt');
+        http.expectNone('/api/auth/csrf');
+        http.expectNone('/api/users/me/preferences');
+      }
+      set(field, '');
+    }
+    for (const [runtime, distance] of [['1', '0.5'], ['600', '100'], ['', '']]) {
+      set('maximumRuntimeMinutes', runtime);
+      set('maximumDistanceKilometers', distance);
+      submit();
+      http.expectOne('/api/auth/csrf').flush({ token: 'test' });
+      const request = http.expectOne('/api/users/me/preferences');
+      expect(request.request.body.maximumRuntimeMinutes).toBe(runtime ? Number(runtime) : null);
+      expect(request.request.body.maximumDistanceKilometers).toBe(distance ? Number(distance) : null);
+      request.flush(request.request.body);
+      fixture.detectChanges();
+    }
+    http.verify();
+  });
+
   for (const failureStage of ['csrf', 'save'] as const) {
     it(`locks preference saves and allows retry after ${failureStage} failure`, async () => {
       await TestBed.configureTestingModule({

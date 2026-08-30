@@ -14,8 +14,12 @@
     <form class="profile-preferences" [formGroup]="preferences" (ngSubmit)="savePreferences()">
       <label>Tür kodu<input formControlName="preferredGenreSlug" placeholder="bilim-kurgu" maxlength="100" /></label>
       <label>Dil<input formControlName="preferredLanguage" placeholder="tr" maxlength="10" /></label>
-      <label>En fazla süre<input type="number" formControlName="maximumRuntimeMinutes" min="1" max="600" /></label>
-      <label>En fazla mesafe (km)<input type="number" formControlName="maximumDistanceKilometers" min="1" max="100" /></label>
+      <label>En fazla süre<input type="number" formControlName="maximumRuntimeMinutes" min="1" max="600" step="1" [attr.aria-invalid]="invalidPreference('maximumRuntimeMinutes')" aria-describedby="runtime-help" />
+        <small id="runtime-help" [class.form-error]="invalidPreference('maximumRuntimeMinutes')">1–600 dakika arasında tam sayı gir veya boş bırak.</small>
+      </label>
+      <label>En fazla mesafe (km)<input type="number" formControlName="maximumDistanceKilometers" min="0" max="100" step="any" [attr.aria-invalid]="invalidPreference('maximumDistanceKilometers')" aria-describedby="distance-help" />
+        <small id="distance-help" [class.form-error]="invalidPreference('maximumDistanceKilometers')">0'dan büyük, en fazla 100 km gir veya boş bırak.</small>
+      </label>
       <button type="submit" [disabled]="savingPreferences()">{{ savingPreferences() ? 'Kaydediliyor…' : 'Tercihleri kaydet' }}</button>
     </form>
     @if (preferenceMessage()) { <p class="location-message" role="status">{{ preferenceMessage() }}</p> }
