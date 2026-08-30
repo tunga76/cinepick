@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ShowtimeListItem } from './cinema-catalog.service';
-import { istanbulDateKey, showtimeDateOptions, showtimeFacetOptions, showtimePriceOptions, sortShowtimes } from './showtime-date';
+import { istanbulDateKey, matchesShowtimePeriod, showtimeDateOptions, showtimeFacetOptions, showtimePriceOptions, sortShowtimes } from './showtime-date';
 
 const showtime = (id: string, startsAt: string): ShowtimeListItem => ({
   id, startsAt, endsAt: startsAt, movieId: 'movie', movieTitle: 'Film', cinemaId: 'cinema',
@@ -55,5 +55,13 @@ describe('showtime date helpers', () => {
     ];
     expect(showtimePriceOptions(items, '2026-08-29')).toEqual([120, 180]);
     expect(showtimePriceOptions(items, '2026-08-30')).toEqual([90]);
+  });
+
+  it('classifies periods using Europe/Istanbul time', () => {
+    expect(matchesShowtimePeriod('2026-08-29T08:59:00Z', 'morning')).toBe(true);
+    expect(matchesShowtimePeriod('2026-08-29T09:00:00Z', 'afternoon')).toBe(true);
+    expect(matchesShowtimePeriod('2026-08-29T14:59:00Z', 'afternoon')).toBe(true);
+    expect(matchesShowtimePeriod('2026-08-29T15:00:00Z', 'evening')).toBe(true);
+    expect(matchesShowtimePeriod('2026-08-29T15:00:00Z', 'all')).toBe(true);
   });
 });

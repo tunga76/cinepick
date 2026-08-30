@@ -2,6 +2,7 @@ import { ShowtimeListItem } from './cinema-catalog.service';
 
 export interface ShowtimeDateOption { key: string; label: string; }
 export type ShowtimeSort = 'time' | 'price';
+export type ShowtimePeriod = 'all' | 'morning' | 'afternoon' | 'evening';
 
 export function istanbulDateKey(value: string): string {
   const parts = new Intl.DateTimeFormat('en-CA', {
@@ -50,4 +51,14 @@ export function showtimePriceOptions(
     .filter(item => !dateKey || istanbulDateKey(item.startsAt) === dateKey)
     .map(item => item.price))]
     .sort((left, right) => left - right);
+}
+
+export function matchesShowtimePeriod(value: string, period: ShowtimePeriod): boolean {
+  if (period === 'all') return true;
+  const hour = Number(new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Istanbul', hour: '2-digit', hourCycle: 'h23',
+  }).format(new Date(value)));
+  if (period === 'morning') return hour < 12;
+  if (period === 'afternoon') return hour >= 12 && hour < 18;
+  return hour >= 18;
 }

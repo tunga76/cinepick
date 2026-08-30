@@ -6,7 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { MovieCatalogService, MovieDetail, tmdbPosterUrl } from './movie-catalog.service';
 import { UserMovieState, UserProfileService } from '../profile/user-profile.service';
 import { CinemaCatalogService, ShowtimeListItem } from '../cinemas/cinema-catalog.service';
-import { istanbulDateKey, showtimeDateOptions, showtimeFacetOptions, showtimePriceOptions, ShowtimeSort, sortShowtimes } from '../cinemas/showtime-date';
+import { istanbulDateKey, matchesShowtimePeriod, showtimeDateOptions, showtimeFacetOptions, showtimePriceOptions, ShowtimePeriod, ShowtimeSort, sortShowtimes } from '../cinemas/showtime-date';
 
 @Component({
   selector: 'app-movie-detail-page',
@@ -34,6 +34,7 @@ export class MovieDetailPage implements OnInit {
   protected readonly selectedCinema = signal('');
   protected readonly selectedSort = signal<ShowtimeSort>('time');
   protected readonly maximumPrice = signal<number | null>(null);
+  protected readonly selectedPeriod = signal<ShowtimePeriod>('all');
   protected readonly dateOptions = computed(() => showtimeDateOptions(this.showtimes()));
   protected readonly languageOptions = computed(() => showtimeFacetOptions(this.showtimes(), this.selectedDate(), 'language'));
   protected readonly formatOptions = computed(() => showtimeFacetOptions(this.showtimes(), this.selectedDate(), 'format'));
@@ -44,7 +45,8 @@ export class MovieDetailPage implements OnInit {
       && (!this.selectedLanguage() || item.language === this.selectedLanguage())
       && (!this.selectedFormat() || item.format === this.selectedFormat())
       && (!this.selectedCinema() || item.cinemaName === this.selectedCinema())
-      && (this.maximumPrice() === null || item.price <= this.maximumPrice()!)), this.selectedSort()));
+      && (this.maximumPrice() === null || item.price <= this.maximumPrice()!)
+      && matchesShowtimePeriod(item.startsAt, this.selectedPeriod())), this.selectedSort()));
   protected readonly showtimesLoading = signal(true);
   protected readonly showtimesError = signal(false);
   protected rating: number | null = null;
@@ -95,7 +97,15 @@ export class MovieDetailPage implements OnInit {
   }
   protected selectDate(date: string): void {
     this.selectedDate.set(date); this.selectedLanguage.set(''); this.selectedFormat.set('');
-    this.selectedCinema.set(''); this.maximumPrice.set(null);
+    this.selectedCinema.set(''); this.maximumPrice.set(null); this.selectedPeriod.set('all');
+  }
+  protected resetShowtimeFilters(): void {
+    this.selectedCinema.set('');
+    this.selectedLanguage.set('');
+    this.selectedFormat.set('');
+    this.maximumPrice.set(null);
+    this.selectedPeriod.set('all');
+    this.selectedSort.set('time');
   }
 
   protected saveState(change: Partial<Pick<UserMovieState, 'isFavorite' | 'isWatched'>> = {}): void {
