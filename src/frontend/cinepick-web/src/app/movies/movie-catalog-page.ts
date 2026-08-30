@@ -118,6 +118,9 @@ export class MovieCatalogPage implements OnInit {
   protected markPosterBroken(movieId: string): void {
     this.brokenPosterIds.update(current => new Set([...current, movieId]));
   }
+  protected retryPosters(): void {
+    this.brokenPosterIds.set(new Set());
+  }
   protected recommend(): void {
     if (this.recommendationLoading()) return;
     const text = this.requestText.value.trim();

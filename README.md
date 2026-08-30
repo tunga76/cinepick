@@ -90,6 +90,9 @@ from 1 to 600, distance is greater than 0 and at most 100 km (fractions allowed)
 and either field may be left empty. Accessible field hints identify invalid values.
 Recommendation requests prevent concurrent submissions, announce loading/empty
 states, and offer an explicit retry after failure without clearing the user's text.
+Catalog and movie-detail poster failures show manual retry controls. Retry recreates
+failed image elements without reloading the page; missing poster metadata still
+uses a placeholder. This does not bypass network restrictions on the image host.
 
 Movie metadata, showtime, and AI modes default to `Mock`. Empty TMDb or AI keys do not prevent startup. To enable TMDb movie metadata, set `MovieProviders__Mode=TMDb` and store the application read access token in `TMDb__ReadAccessToken`; language, region, and page limits default to `tr-TR`, `TR`, and `2`. This affects movie metadata only—showtimes remain on their separately configured provider. To enable the OpenAI Responses ranker, set `AI__Mode=OpenAI` and `AI__ApiKey`; `AI__Model` and `AI__Endpoint` are optional.
 

@@ -6,6 +6,10 @@
     <article class="movie-detail"><div class="poster detail-poster">
       @if (posterUrl(item); as poster) { <img [src]="poster" [alt]="item.title + ' film posteri'" (error)="posterFailed.set(true)" /> }
       @else { <span aria-hidden="true">{{ item.title.charAt(0) }}</span><small>CinePick</small> }
+      @if (posterFailed()) {
+        <p role="status">Afiş yüklenemedi.</p>
+        <button type="button" (click)="posterFailed.set(false)">Afişi tekrar yükle</button>
+      }
     </div>
       <div><p class="eyebrow">{{ item.isNowPlaying ? 'Şimdi sinemalarda' : 'Yakında' }}</p><h1>{{ item.title }}</h1>
         @if (item.originalTitle !== item.title) { <p class="original-title">{{ item.originalTitle }}</p> }

@@ -23,6 +23,11 @@
       <div class="recommendation-state" role="status">İsteğine uyan gerçek bir seans bulunamadı. Zaman veya konum koşulunu genişletebilirsin.</div>
     }
   </section>
+  @if (brokenPosterIds().size > 0) {
+    <div class="state-card poster-retry"><p role="status">Bazı afişler yüklenemedi. Bağlantını kontrol edip tekrar deneyebilirsin.</p>
+      <button type="button" (click)="retryPosters()">Afişleri tekrar yükle</button>
+    </div>
+  }
   <section class="upcoming-preview" aria-labelledby="upcoming-preview-title">
     <div class="section-heading">
       <div><p class="eyebrow">Vizyon takvimi</p><h2 id="upcoming-preview-title">Pek yakında</h2></div>
