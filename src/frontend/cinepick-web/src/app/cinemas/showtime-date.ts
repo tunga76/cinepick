@@ -39,7 +39,7 @@ export function sortShowtimes(
 ): ShowtimeListItem[] {
   return [...showtimes].sort((left, right) => {
     if (sort === 'price' && left.price !== right.price) return left.price - right.price;
-    const timeComparison = left.startsAt.localeCompare(right.startsAt);
+    const timeComparison = Date.parse(left.startsAt) - Date.parse(right.startsAt);
     return timeComparison || left.id.localeCompare(right.id);
   });
 }

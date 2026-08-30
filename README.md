@@ -72,6 +72,9 @@ Movie and cinema detail pages support Istanbul-local day and time-period filters
 language, format, maximum price, and time/price sorting. Movie details also support
 cinema selection. “Seans filtrelerini temizle” resets these controls and sorting
 without changing the selected day; result counts are announced to screen readers.
+Showtime sorting compares actual instants across UTC offsets, using the showtime
+identifier as a deterministic tie-breaker for equal start times (and equal prices
+when sorting by price).
 The shared mobile navigation closes with Escape and returns focus to its toggle.
 Failed logout requests display an accessible retry message without clearing local
 session state or redirecting the user before the server confirms logout.

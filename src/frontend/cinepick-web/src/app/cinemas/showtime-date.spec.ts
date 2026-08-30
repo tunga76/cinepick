@@ -46,6 +46,34 @@ describe('showtime date helpers', () => {
       .toEqual(['expensive', 'early-cheap', 'late-cheap']);
   });
 
+  it('sorts actual instants across offsets and calendar boundaries without mutating input', () => {
+    const items = Object.freeze([
+      showtime('later', '2026-08-29T22:00:00Z'),
+      showtime('earlier', '2026-08-30T00:30:00+03:00'),
+    ]);
+    expect(sortShowtimes(items, 'time').map(item => item.id)).toEqual(['earlier', 'later']);
+    expect(items.map(item => item.id)).toEqual(['later', 'earlier']);
+  });
+
+  it('breaks equal-price ties using actual instants across offsets', () => {
+    const items = [
+      showtime('later', '2026-08-29T16:00:00Z'),
+      showtime('earlier', '2026-08-29T18:00:00+03:00'),
+    ];
+    expect(sortShowtimes(items, 'price').map(item => item.id)).toEqual(['earlier', 'later']);
+  });
+
+  it('uses identifiers to order equivalent instants regardless of timestamp representation', () => {
+    const items = [
+      showtime('b', '2026-08-29T15:00:00Z'),
+      showtime('a', '2026-08-29T18:00:00+03:00'),
+    ];
+    for (const mode of ['time', 'price'] as const) {
+      expect(sortShowtimes(items, mode).map(item => item.id)).toEqual(['a', 'b']);
+      expect(sortShowtimes([...items].reverse(), mode).map(item => item.id)).toEqual(['a', 'b']);
+    }
+  });
+
   it('returns distinct prices only for the selected Istanbul date', () => {
     const items = [
       { ...showtime('1', '2026-08-29T18:00:00Z'), price: 180 },
