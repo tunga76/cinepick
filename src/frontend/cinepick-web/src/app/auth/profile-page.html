@@ -4,6 +4,12 @@
     @if (user()?.roles?.length) { <p>Roller: {{ user()?.roles?.join(', ') }}</p> }
     <button type="button" [disabled]="busy()" (click)="logout()">{{ busy() ? 'Çıkış yapılıyor…' : 'Çıkış yap' }}</button>
   </section>
+  @if (loading()) {
+    <p class="location-message" role="status">Profil bilgileri yükleniyor…</p>
+  } @else if (loadError()) {
+    <p class="form-error" role="alert">{{ loadError() }}</p>
+    <button type="button" (click)="loadProfile()">Tekrar dene</button>
+  } @else {
   <section class="admin-section"><h2>Öneri tercihlerin</h2>
     <form class="profile-preferences" [formGroup]="preferences" (ngSubmit)="savePreferences()">
       <label>Tür kodu<input formControlName="preferredGenreSlug" placeholder="bilim-kurgu" maxlength="100" /></label>
@@ -22,4 +28,5 @@
     @if (history().length === 0) { <p class="location-message">Oturum açıkken henüz öneri almadın.</p> }
     @else { <div class="history-list">@for (session of history(); track session.sessionId) { <article class="profile-card"><p class="eyebrow">{{ istanbulTime(session.createdAt) }} · {{ session.method }}</p>@for (result of session.results; track result.rank) { <a [routerLink]="['/movies', result.movieId]"><strong>{{ result.rank }}. {{ result.movieTitle }}</strong></a><p>{{ result.reason }}</p> }</article> }</div> }
   </section>
+  }
 </main>

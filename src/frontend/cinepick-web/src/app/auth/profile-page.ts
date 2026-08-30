@@ -14,6 +14,8 @@ export class ProfilePage implements OnInit {
   private readonly profileService = inject(UserProfileService);
   protected readonly user = this.authService.currentUser;
   protected readonly busy = signal(false);
+  protected readonly loading = signal(false);
+  protected readonly loadError = signal('');
   protected readonly movieStates = signal<readonly UserMovieState[]>([]);
   protected readonly history = signal<readonly RecommendationHistoryItem[]>([]);
   protected readonly preferenceMessage = signal('');
@@ -25,10 +27,17 @@ export class ProfilePage implements OnInit {
   });
 
   ngOnInit(): void {
+    this.loadProfile();
+  }
+
+  protected loadProfile(): void {
+    if (this.loading()) return;
+    this.loading.set(true);
+    this.loadError.set('');
     forkJoin({ states: this.profileService.getMovieStates(),
       preferences: this.profileService.getPreferences(),
       history: this.profileService.getRecommendationHistory() })
-      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ states, preferences, history }) => {
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: ({ states, preferences, history }) => {
         this.movieStates.set(states); this.history.set(history);
         this.preferences.setValue({
           preferredGenreSlug: preferences.preferredGenreSlug ?? '',
@@ -36,10 +45,16 @@ export class ProfilePage implements OnInit {
           maximumRuntimeMinutes: preferences.maximumRuntimeMinutes,
           maximumDistanceKilometers: preferences.maximumDistanceKilometers,
         });
+        this.loading.set(false);
+      }, error: () => {
+        this.loadError.set('Profil bilgileri yüklenemedi. Lütfen tekrar dene.');
+        this.loading.set(false);
+      },
       });
   }
 
   protected savePreferences(): void {
+    if (this.loading() || this.loadError()) return;
     this.preferenceMessage.set('');
     const value = this.preferences.getRawValue();
     this.profileService.updatePreferences({
