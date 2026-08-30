@@ -64,6 +64,7 @@
 .primary-navigation a.active { color: #ff8ba0; }
 .nav-action { min-height: auto; border: 1px solid #4b4558; background: transparent; }
 .menu-toggle { display: none; min-height: 2.6rem; padding: 0 0.8rem; }
+.navigation-error { box-sizing: border-box; width: min(68rem, calc(100% - 2rem)); margin: 0 auto 0.75rem; }
 
 .hero {
   max-width: 48rem;

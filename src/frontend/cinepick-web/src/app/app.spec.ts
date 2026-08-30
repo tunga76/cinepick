@@ -1,7 +1,9 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
+import { vi } from 'vitest';
+import { AuthService } from './auth/auth.service';
 import { App } from './app';
 import { routes } from './app.routes';
 
@@ -35,6 +37,47 @@ describe('App', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Yönetim');
     expect(fixture.nativeElement.textContent).toContain('Yönetici');
+    http.verify();
+  });
+
+  it('closes the open menu with Escape and restores toggle focus', async () => {
+    const { fixture, http } = await createApp();
+    http.expectOne('/api/auth/me').flush(null, { status: 401, statusText: 'Unauthorized' });
+    const toggle: HTMLButtonElement = fixture.nativeElement.querySelector('.menu-toggle');
+    toggle.click();
+    fixture.detectChanges();
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    const focus = vi.spyOn(toggle, 'focus');
+    fixture.nativeElement.querySelector('nav a').dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    fixture.detectChanges();
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(focus).toHaveBeenCalledOnce();
+    http.verify();
+  });
+
+  it('keeps session state on logout failure and allows a successful retry', async () => {
+    const { fixture, http } = await createApp();
+    const user = { id: 'user', email: 'user@example.test', displayName: 'Test', roles: [] };
+    http.expectOne('/api/auth/me').flush(user);
+    fixture.detectChanges();
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+    const logout: HTMLButtonElement = fixture.nativeElement.querySelector('.nav-action');
+    logout.click();
+    http.expectOne('/api/auth/csrf').flush({ token: 'first' });
+    http.expectOne('/api/auth/logout').flush(null, { status: 503, statusText: 'Unavailable' });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role="alert"]').textContent).toContain('Çıkış işlemi doğrulanamadı');
+    expect(TestBed.inject(AuthService).currentUser()).toEqual(user);
+    expect(navigate).not.toHaveBeenCalled();
+    expect(logout.disabled).toBe(false);
+    logout.click();
+    http.expectOne('/api/auth/csrf').flush({ token: 'retry' });
+    http.expectOne('/api/auth/logout').flush(null);
+    fixture.detectChanges();
+    expect(TestBed.inject(AuthService).currentUser()).toBeNull();
+    expect(fixture.nativeElement.querySelector('[role="alert"]')).toBeNull();
+    expect(navigate).toHaveBeenCalledWith('/');
     http.verify();
   });
 });

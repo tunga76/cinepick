@@ -38,6 +38,12 @@ docker compose up --build
 - Add WireMock.Net tests for external provider failure modes.
 - A change is complete only when affected builds and tests pass and documentation/config examples stay current.
 
+## GitHub and deployment authorization
+
+- The user authorizes committing completed project updates and pushing them to GitHub after affected tests and builds pass, without asking for confirmation for each update.
+- This authorization does not include Azure deployment. Ask for explicit approval before deploying to Azure.
+- Do not include unrelated user changes or secrets in commits; tool permission checks still apply.
+
 ## External service and AI safety
 
 - Never commit secrets or real `.env` values.
